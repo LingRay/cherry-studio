@@ -187,7 +187,6 @@ Cherry Studio への貢献を歓迎します！以下の方法で貢献できま
 [![Star History Chart](https://api.star-history.com/svg?repos=CherryHQ/cherry-studio&type=Timeline)](https://star-history.com/#CherryHQ/cherry-studio&Timeline)
 
 <!-- リンクと画像 -->
-
 [deepwiki-shield]: https://img.shields.io/badge/Deepwiki-CherryHQ-0088CC?style=plastic
 [deepwiki-link]: https://deepwiki.com/CherryHQ/cherry-studio
 [twitter-shield]: https://img.shields.io/badge/Twitter-CherryStudioApp-0088CC?style=plastic&logo=x
@@ -198,7 +197,6 @@ Cherry Studio への貢献を歓迎します！以下の方法で貢献できま
 [telegram-link]: https://t.me/CherryStudioAI
 
 <!-- プロジェクト統計 -->
-
 [github-stars-shield]: https://img.shields.io/github/stars/CherryHQ/cherry-studio?style=social
 [github-stars-link]: https://github.com/CherryHQ/cherry-studio/stargazers
 [github-forks-shield]: https://img.shields.io/github/forks/CherryHQ/cherry-studio?style=social
@@ -209,7 +207,6 @@ Cherry Studio への貢献を歓迎します！以下の方法で貢献できま
 [github-contributors-link]: https://github.com/CherryHQ/cherry-studio/graphs/contributors
 
 <!-- ライセンスとスポンサー -->
-
 [license-shield]: https://img.shields.io/badge/License-AGPLv3-important.svg?style=plastic&logo=gnu
 [license-link]: https://www.gnu.org/licenses/agpl-3.0
 [commercial-shield]: https://img.shields.io/badge/商用ライセンス-お問い合わせ-white.svg?style=plastic&logoColor=white&logo=telegram&color=blue
