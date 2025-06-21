@@ -122,20 +122,11 @@ export const MemoryQueries = {
             WHEN m.embedding IS NULL THEN 0.0
             ELSE (1 - vector_distance_cos(m.embedding, vector32(?)))
           END as vector_similarity,
-          CASE 
-            WHEN m.memory LIKE ? THEN 1.0
-            WHEN m.memory LIKE ? THEN 0.8
-            ELSE 0.0
-          END as text_similarity,
+          0.0 as text_similarity,
           (
             CASE 
               WHEN m.embedding IS NULL THEN 0.0
-              ELSE (1 - vector_distance_cos(m.embedding, vector32(?))) * 0.7
-            END +
-            CASE 
-              WHEN m.memory LIKE ? THEN 1.0 * 0.3
-              WHEN m.memory LIKE ? THEN 0.8 * 0.3
-              ELSE 0.0
+              ELSE (1 - vector_distance_cos(m.embedding, vector32(?)))
             END
           ) as combined_score
         FROM memories m

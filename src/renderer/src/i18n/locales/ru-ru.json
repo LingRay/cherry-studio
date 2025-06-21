@@ -2135,7 +2135,6 @@
       "user": "Пользователь",
       "content": "Содержимое",
       "score": "Оценка",
-      "memories": "Память",
       "memories_description": "Показано {{count}} из {{total}} записей памяти",
       "search_placeholder": "Поиск памяти...",
       "start_date": "Дата начала",

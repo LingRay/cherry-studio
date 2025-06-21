@@ -620,16 +620,16 @@ export class MemoryService {
   }
 
   /**
-   * Hybrid search combining text and vector similarity
+   * Hybrid search combining text and vector similarity (currently vector-only)
    */
   private async hybridSearch(
-    query: string,
+    _: string,
     queryEmbedding: number[],
     options: VectorSearchOptions = {}
   ): Promise<SearchResult> {
     if (!this.db) throw new Error('Database not initialized')
 
-    const { limit = 10, threshold = 0.0, userId, agentId } = options
+    const { limit = 10, threshold = 0.5, userId } = options
 
     try {
       const queryVector = this.embeddingToVector(queryEmbedding)
@@ -637,28 +637,20 @@ export class MemoryService {
       const conditions: string[] = ['m.is_deleted = 0']
       const params: any[] = []
 
-      // Add text search parameters
-      const exactMatch = `%${query}%`
-      const fuzzyMatch = `%${query.split(' ').join('%')}%`
-
-      params.push(queryVector, queryVector, exactMatch, fuzzyMatch, queryVector, exactMatch, fuzzyMatch)
+      // Vector search only - three vector parameters for distance, vector_similarity, and combined_score
+      params.push(queryVector, queryVector, queryVector)
 
       if (userId) {
         conditions.push('m.user_id = ?')
         params.push(userId)
       }
 
-      if (agentId) {
-        conditions.push('m.agent_id = ?')
-        params.push(agentId)
-      }
-
       const whereClause = conditions.join(' AND ')
 
       const hybridQuery = `${MemoryQueries.search.hybridSearch} ${whereClause}
       ) AS results
-      WHERE combined_score >= ?
-      ORDER BY combined_score DESC
+      WHERE vector_similarity >= ?
+      ORDER BY vector_similarity DESC
       LIMIT ?`
 
       params.push(threshold, limit)
@@ -675,7 +667,7 @@ export class MemoryService {
         metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
         createdAt: row.created_at as string,
         updatedAt: row.updated_at as string,
-        score: row.combined_score as number
+        score: row.vector_similarity as number
       }))
 
       return {
