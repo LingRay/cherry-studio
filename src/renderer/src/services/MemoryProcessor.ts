@@ -3,7 +3,9 @@ import {
   FactRetrievalSchema,
   getFactRetrievalMessages,
   getUpdateMemoryMessages,
-  MemoryUpdateSchema
+  MemoryUpdateSchema,
+  removeCodeBlocks,
+  updateMemorySystemPrompt
 } from '@renderer/utils/memory-prompts'
 import { MemoryConfig, MemoryItem } from '@types'
 
@@ -57,20 +59,10 @@ export class MemoryProcessor {
 
       // Parse response using Zod schema
       try {
-        const parsed = FactRetrievalSchema.parse(JSON.parse(responseContent))
+        const parsed = FactRetrievalSchema.parse(JSON.parse(removeCodeBlocks(responseContent.trim())))
         return parsed.facts
       } catch (parseError) {
         console.error('Failed to parse fact extraction response:', parseError)
-        // Try to extract facts manually from response
-        const content = responseContent.trim()
-        if (content.startsWith('{') && content.endsWith('}')) {
-          try {
-            const json = JSON.parse(content)
-            return Array.isArray(json.facts) ? json.facts : []
-          } catch {
-            return []
-          }
-        }
         return []
       }
     } catch (error) {
@@ -89,105 +81,106 @@ export class MemoryProcessor {
     facts: string[],
     config: MemoryProcessorConfig
   ): Promise<Array<{ action: string; [key: string]: any }>> {
-    try {
-      if (facts.length === 0) {
-        return []
-      }
-
-      const { memoryConfig, assistantId, userId } = config
-
-      if (!memoryConfig.llmModel) {
-        throw new Error('No LLM model configured for memory processing')
-      }
-
-      // Get existing memories for the user/assistant
-      const existingMemoriesResult = await this.memoryService.list({
-        userId,
-        agentId: assistantId,
-        limit: 100
-      })
-
-      const existingMemories = existingMemoriesResult.results.map((memory) => ({
-        id: memory.id,
-        text: memory.memory
-      }))
-
-      // Generate update memory prompt
-      const updatePrompt = getUpdateMemoryMessages(existingMemories, facts, memoryConfig.customUpdateMemoryPrompt)
-
-      const responseContent = await fetchGenerate({
-        prompt: updatePrompt,
-        content: 'Please ONLY return the valid JSON response with memory operations',
-        model: memoryConfig.llmModel
-      })
-      if (!responseContent || responseContent.trim() === '') {
-        return []
-      }
-      // Parse response using Zod schema
-      try {
-        const parsed = MemoryUpdateSchema.parse(JSON.parse(responseContent))
-        const operations: Array<{ action: string; [key: string]: any }> = []
-
-        for (const memoryOp of parsed) {
-          switch (memoryOp.event) {
-            case 'ADD':
-              try {
-                const result = await this.memoryService.add(memoryOp.text, {
-                  userId,
-                  agentId: assistantId
-                })
-                operations.push({ action: 'ADD', memory: memoryOp.text, result })
-              } catch (error) {
-                console.error('Failed to add memory:', error)
-              }
-              break
-
-            case 'UPDATE':
-              try {
-                // Find the memory to update
-                const existingMemory = existingMemoriesResult.results.find((m) => m.id === memoryOp.id)
-                if (existingMemory) {
-                  await this.memoryService.update(memoryOp.id, memoryOp.text, {
-                    userId,
-                    assistantId,
-                    oldMemory: memoryOp.old_memory
-                  })
-                  operations.push({
-                    action: 'UPDATE',
-                    id: memoryOp.id,
-                    oldMemory: memoryOp.old_memory,
-                    newMemory: memoryOp.text
-                  })
-                }
-              } catch (error) {
-                console.error('Failed to update memory:', error)
-              }
-              break
-
-            case 'DELETE':
-              try {
-                await this.memoryService.delete(memoryOp.id)
-                operations.push({ action: 'DELETE', id: memoryOp.id, memory: memoryOp.text })
-              } catch (error) {
-                console.error('Failed to delete memory:', error)
-              }
-              break
-
-            case 'NONE':
-              // No action needed
-              break
-          }
-        }
-
-        return operations
-      } catch (parseError) {
-        console.error('Failed to parse memory update response:', parseError, 'responseContent: ', responseContent)
-        return []
-      }
-    } catch (error) {
-      console.error('Error updating memories:', error)
+    if (facts.length === 0) {
       return []
     }
+
+    const { memoryConfig, assistantId, userId } = config
+
+    if (!memoryConfig.llmModel) {
+      throw new Error('No LLM model configured for memory processing')
+    }
+
+    // Get existing memories for the user/assistant
+    const existingMemoriesResult = await this.memoryService.list({
+      userId,
+      agentId: assistantId,
+      limit: 100
+    })
+
+    const existingMemories = existingMemoriesResult.results.map((memory) => ({
+      id: memory.id,
+      text: memory.memory
+    }))
+
+    // Generate update memory prompt
+    const updateMemoryUserPrompt = getUpdateMemoryMessages(
+      existingMemories,
+      facts,
+      memoryConfig.customUpdateMemoryPrompt
+    )
+
+    const responseContent = await fetchGenerate({
+      prompt: updateMemorySystemPrompt,
+      content: updateMemoryUserPrompt,
+      model: memoryConfig.llmModel
+    })
+    if (!responseContent || responseContent.trim() === '') {
+      return []
+    }
+    // Parse response using Zod schema
+    let parsed: Array<{ event: string; id: string; text: string; old_memory?: string }> = []
+    try {
+      parsed = MemoryUpdateSchema.parse(JSON.parse(removeCodeBlocks(responseContent)))
+    } catch (parseError) {
+      console.error('Failed to parse memory update response:', parseError, 'responseContent: ', responseContent)
+      return []
+    }
+
+    const operations: Array<{ action: string; [key: string]: any }> = []
+
+    for (const memoryOp of parsed) {
+      switch (memoryOp.event) {
+        case 'ADD':
+          try {
+            const result = await this.memoryService.add(memoryOp.text, {
+              userId,
+              agentId: assistantId
+            })
+            operations.push({ action: 'ADD', memory: memoryOp.text, result })
+          } catch (error) {
+            console.error('Failed to add memory:', error)
+          }
+          break
+
+        case 'UPDATE':
+          try {
+            // Find the memory to update
+            const existingMemory = existingMemoriesResult.results.find((m) => m.id === memoryOp.id)
+            if (existingMemory) {
+              await this.memoryService.update(memoryOp.id, memoryOp.text, {
+                userId,
+                assistantId,
+                oldMemory: memoryOp.old_memory
+              })
+              operations.push({
+                action: 'UPDATE',
+                id: memoryOp.id,
+                oldMemory: memoryOp.old_memory,
+                newMemory: memoryOp.text
+              })
+            }
+          } catch (error) {
+            console.error('Failed to update memory:', error)
+          }
+          break
+
+        case 'DELETE':
+          try {
+            await this.memoryService.delete(memoryOp.id)
+            operations.push({ action: 'DELETE', id: memoryOp.id, memory: memoryOp.text })
+          } catch (error) {
+            console.error('Failed to delete memory:', error)
+          }
+          break
+
+        case 'NONE':
+          // No action needed
+          break
+      }
+    }
+
+    return operations
   }
 
   /**
