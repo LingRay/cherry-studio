@@ -424,7 +424,9 @@
         "pinyin.asc": "按拼音升序",
         "pinyin.desc": "按拼音降序"
       },
-      "no_results": "无结果"
+      "no_results": "无结果",
+      "enabled": "已启用",
+      "disabled": "已禁用"
     },
     "docs": {
       "title": "帮助文档"
@@ -2184,7 +2186,14 @@
       "total_memories": "条记忆",
       "default": "默认",
       "custom": "自定义",
-      "description": "记忆功能允许您存储和管理与助手交互的信息。您可以添加、编辑和删除记忆，也可以对它们进行过滤和搜索。"
+      "description": "记忆功能允许您存储和管理与助手交互的信息。您可以添加、编辑和删除记忆，也可以对它们进行过滤和搜索。",
+      "global_memory_enabled": "全局记忆已启用",
+      "global_memory": "全局记忆",
+      "enable_global_memory_first": "请先启用全局记忆",
+      "configure_memory_first": "请先配置记忆设置",
+      "global_memory_disabled_title": "全局记忆已禁用",
+      "global_memory_disabled_desc": "要使用记忆功能，请先在助手设置中启用全局记忆。",
+      "go_to_memory_page": "前往记忆页面"
     }
   }
 }

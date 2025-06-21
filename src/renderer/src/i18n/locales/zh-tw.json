@@ -424,7 +424,9 @@
         "pinyin.asc": "按拼音升序",
         "pinyin.desc": "按拼音降序"
       },
-      "no_results": "沒有結果"
+      "no_results": "沒有結果",
+      "enabled": "已啟用",
+      "disabled": "已停用"
     },
     "docs": {
       "title": "說明文件"
@@ -2184,7 +2186,14 @@
       "total_memories": "個記憶",
       "default": "預設",
       "custom": "自定義",
-      "description": "記憶功能讓您儲存和管理與助手互動的資訊。您可以新增、編輯和刪除記憶，也可以對它們進行篩選和搜尋。"
+      "description": "記憶功能讓您儲存和管理與助手互動的資訊。您可以新增、編輯和刪除記憶，也可以對它們進行篩選和搜尋。",
+      "global_memory_enabled": "全域記憶已啟用",
+      "global_memory": "全域記憶",
+      "enable_global_memory_first": "請先啟用全域記憶",
+      "configure_memory_first": "請先配置記憶設定",
+      "global_memory_disabled_title": "全域記憶已停用",
+      "global_memory_disabled_desc": "要使用記憶功能，請先在助手設定中啟用全域記憶。",
+      "go_to_memory_page": "前往記憶頁面"
     }
   }
 }

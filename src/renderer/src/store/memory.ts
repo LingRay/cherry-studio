@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { factExtractionPrompt, updateMemoryPrompt } from '@renderer/utils/memory-prompts'
+import { factExtractionPrompt, updateMemorySystemPrompt } from '@renderer/utils/memory-prompts'
 import type { MemoryConfig } from '@types'
 
 /**
@@ -11,13 +11,15 @@ export interface MemoryState {
   memoryConfig: MemoryConfig
   /** The currently selected user ID for memory operations */
   currentUserId: string
+  /** Global memory enabled state - when false, memory is disabled for all assistants */
+  globalMemoryEnabled: boolean
 }
 
 // Default memory configuration to avoid undefined errors
 const defaultMemoryConfig: MemoryConfig = {
   embedderDimensions: 1536,
   customFactExtractionPrompt: factExtractionPrompt,
-  customUpdateMemoryPrompt: updateMemoryPrompt
+  customUpdateMemoryPrompt: updateMemorySystemPrompt
 }
 
 /**
@@ -25,7 +27,8 @@ const defaultMemoryConfig: MemoryConfig = {
  */
 export const initialState: MemoryState = {
   memoryConfig: defaultMemoryConfig,
-  currentUserId: localStorage.getItem('memory_currentUserId') || 'default-user'
+  currentUserId: localStorage.getItem('memory_currentUserId') || 'default-user',
+  globalMemoryEnabled: true // Default to true, can be set to false in settings
 }
 
 /**
@@ -60,6 +63,15 @@ const memorySlice = createSlice({
     setCurrentUserId: (state, action: PayloadAction<string>) => {
       state.currentUserId = action.payload
       localStorage.setItem('memory_currentUserId', action.payload)
+    },
+    /**
+     * Sets the global memory enabled state and persists it to localStorage
+     * @param state - Current memory state
+     * @param action - Payload containing the new global memory enabled state
+     */
+    setGlobalMemoryEnabled: (state, action: PayloadAction<boolean>) => {
+      state.globalMemoryEnabled = action.payload
+      localStorage.setItem('memory_globalEnabled', action.payload.toString())
     }
   },
   selectors: {
@@ -74,15 +86,21 @@ const memorySlice = createSlice({
      * @param state - Memory state
      * @returns The current user ID
      */
-    getCurrentUserId: (state) => state.currentUserId
+    getCurrentUserId: (state) => state.currentUserId,
+    /**
+     * Selector to get the global memory enabled state
+     * @param state - Memory state
+     * @returns The global memory enabled state
+     */
+    getGlobalMemoryEnabled: (state) => state.globalMemoryEnabled
   }
 })
 
 // Export action creators
-export const { updateMemoryConfig, setCurrentUserId } = memorySlice.actions
+export const { updateMemoryConfig, setCurrentUserId, setGlobalMemoryEnabled } = memorySlice.actions
 
 // Export selectors
-export const { getMemoryConfig, getCurrentUserId } = memorySlice.selectors
+export const { getMemoryConfig, getCurrentUserId, getGlobalMemoryEnabled } = memorySlice.selectors
 
 // Type-safe selector for accessing this slice from the root state
 export const selectMemory = (state: { memory: MemoryState }) => state.memory
@@ -92,6 +110,9 @@ export const selectMemoryConfig = (state: { memory?: MemoryState }) => state.mem
 
 // Root state selector for current user ID with safety check
 export const selectCurrentUserId = (state: { memory?: MemoryState }) => state.memory?.currentUserId || 'default-user'
+
+// Root state selector for global memory enabled with safety check
+export const selectGlobalMemoryEnabled = (state: { memory?: MemoryState }) => state.memory?.globalMemoryEnabled ?? true
 
 export { memorySlice }
 // Export the reducer as default export

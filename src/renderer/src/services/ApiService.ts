@@ -18,7 +18,7 @@ import {
 import { getStoreSetting } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
 import store from '@renderer/store'
-import { selectCurrentUserId, selectMemoryConfig } from '@renderer/store/memory'
+import { selectCurrentUserId, selectGlobalMemoryEnabled, selectMemoryConfig } from '@renderer/store/memory'
 import {
   Assistant,
   ExternalToolResult,
@@ -75,7 +75,8 @@ async function fetchExternalTool(
   // 使用外部搜索工具
   const shouldWebSearch = !!assistant.webSearchProviderId && webSearchProvider !== null
   const shouldKnowledgeSearch = hasKnowledgeBase
-  const shouldSearchMemory = assistant.enableMemory
+  const globalMemoryEnabled = selectGlobalMemoryEnabled(store.getState())
+  const shouldSearchMemory = globalMemoryEnabled && assistant.enableMemory
 
   // 在工具链开始时发送进度通知
   const willUseTools = shouldWebSearch || shouldKnowledgeSearch || shouldSearchMemory
@@ -424,7 +425,8 @@ export async function fetchChatCompletion({
   )
 
   // Post-conversation memory processing
-  if (assistant.enableMemory) {
+  const globalMemoryEnabled = selectGlobalMemoryEnabled(store.getState())
+  if (globalMemoryEnabled && assistant.enableMemory) {
     await processConversationMemory(messages, assistant)
   }
 }

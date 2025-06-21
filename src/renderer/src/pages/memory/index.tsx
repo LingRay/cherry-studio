@@ -12,7 +12,12 @@ import {
   UserOutlined
 } from '@ant-design/icons'
 import MemoryService from '@renderer/services/MemoryService'
-import { selectCurrentUserId, setCurrentUserId } from '@renderer/store/memory'
+import {
+  selectCurrentUserId,
+  selectGlobalMemoryEnabled,
+  setCurrentUserId,
+  setGlobalMemoryEnabled
+} from '@renderer/store/memory'
 import { MemoryItem } from '@types'
 import {
   Avatar,
@@ -27,7 +32,8 @@ import {
   Pagination,
   Select,
   Space,
-  Spin
+  Spin,
+  Switch
 } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -54,14 +60,15 @@ const StyledContent = styled(Content)`
 `
 
 const HeaderSection = styled.div`
-  background: #ffffff;
+  background: var(--color-background);
   border-bottom: 1px solid var(--color-border);
-  padding: 24px;
+  padding: 32px 24px 28px;
   margin-bottom: 0;
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
 
   .header-container {
     max-width: 800px;
@@ -71,54 +78,253 @@ const HeaderSection = styled.div`
   .header-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 24px;
   }
 
-  .header-left {
+  .header-title-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
     flex: 1;
+    min-width: 0;
+  }
+
+  .title-content {
+    flex: 1;
+    min-width: 0;
   }
 
   .header-title {
     color: var(--color-text);
-    margin: 0 0 4px 0;
-    font-weight: 600;
-    font-size: 28px;
-    line-height: 1.2;
-  }
-
-  .header-subtitle {
-    color: var(--color-text-secondary);
     margin: 0;
-    font-size: 14px;
-    font-weight: 400;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .header-actions {
+  .global-memory-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--color-background-soft);
+    border: 1px solid var(--color-border);
+    border-radius: 28px;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+    &:hover {
+      background: var(--color-background-hover);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+
+    .toggle-status {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(var(--color-success-rgb), 0.12);
+      color: var(--color-success);
+      margin-left: 4px;
+
+      &.disabled {
+        background: rgba(var(--color-text-tertiary-rgb), 0.12);
+        color: var(--color-text-tertiary);
+      }
+    }
+  }
+
+  .header-utility {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .settings-button {
+    background: var(--color-background-soft);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--color-background-hover);
+      color: var(--color-text);
+      border-color: var(--color-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .user-stats-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .stats-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(var(--color-primary-rgb), 0.08);
+    border-radius: 20px;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.15);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-primary);
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(var(--color-primary-rgb), 0.12);
+      transform: translateY(-1px);
+    }
+  }
+
+  .stat-icon {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+
+  .main-actions {
     display: flex;
     align-items: center;
     gap: 12px;
   }
 
   .user-selector {
-    min-width: 180px;
+    min-width: 200px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: var(--color-background-soft);
+    backdrop-filter: blur(4px);
+
+    .ant-select-selector {
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 8px 12px;
+      border-radius: 10px;
+      color: var(--color-text) !important;
+    }
   }
 
   .user-avatar {
-    background: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-primary) 0%, #667eea 100%);
     color: white;
     font-weight: 600;
+    font-size: 11px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .action-button {
+    border-radius: 10px;
+    font-weight: 500;
+    height: 38px;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+
+    &.primary-action {
+      background: linear-gradient(135deg, var(--color-primary) 0%, #667eea 100%);
+      border: none;
+      box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.3);
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(var(--color-primary-rgb), 0.4);
+      }
+    }
+
+    &.secondary-action {
+      background: var(--color-background-soft);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+
+      &:hover {
+        background: var(--color-background-hover);
+        color: var(--color-text);
+        border-color: var(--color-primary);
+      }
+    }
   }
 
   .search-section {
     display: flex;
     justify-content: center;
-    margin-top: 8px;
+    margin-top: 4px;
   }
 
   .search-input {
     max-width: 100%;
     width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-background-soft);
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+
+    .ant-input {
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: var(--color-text);
+
+      &::placeholder {
+        color: var(--color-text-tertiary);
+        font-weight: 400;
+      }
+    }
+
+    .ant-input-search-button {
+      border-radius: 0 12px 12px 0;
+      border: none;
+      background: var(--color-primary);
+
+      &:hover {
+        background: var(--color-primary-hover);
+      }
+    }
+
+    &:hover,
+    &:focus-within {
+      border-color: var(--color-primary);
+      box-shadow: 0 2px 12px rgba(var(--color-primary-rgb), 0.15);
+    }
   }
 `
 
@@ -129,8 +335,8 @@ const MainContent = styled.div`
 `
 
 const MemoryCard = styled(Card)`
-  background: #ffffff;
-  border: 1px solid #e8e8e8;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   margin-bottom: 16px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -192,10 +398,11 @@ const MemoryCard = styled(Card)`
     gap: 4px;
     opacity: 0;
     transition: opacity 0.2s ease;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--color-background-soft);
     padding: 4px;
     border-radius: 8px;
     backdrop-filter: blur(4px);
+    border: 1px solid var(--color-border);
   }
 
   &:hover .memory-actions {
@@ -520,6 +727,7 @@ const MemoriesPage = () => {
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const currentUser = useSelector(selectCurrentUserId)
+  const globalMemoryEnabled = useSelector(selectGlobalMemoryEnabled)
 
   const [allMemories, setAllMemories] = useState<MemoryItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -766,20 +974,85 @@ const MemoriesPage = () => {
     })
   }
 
+  const handleGlobalMemoryToggle = (enabled: boolean) => {
+    dispatch(setGlobalMemoryEnabled(enabled))
+    message.success(
+      enabled
+        ? t('memory.global_memory_enabled', 'Global memory has been enabled')
+        : t('memory.global_memory_disabled', 'Global memory has been disabled')
+    )
+  }
+
   return (
     <Layout>
       <StyledContent>
         <HeaderSection>
           <div className="header-container">
             <div className="header-top">
-              <div className="header-left">
-                <h1 className="header-title">{t('memory.title')}</h1>
-                <p className="header-subtitle">
-                  {allMemories.length} {allMemories.length === 1 ? t('memory.memory') : t('memory.title')} •{' '}
-                  {getUserDisplayName(currentUser)}
-                </p>
+              <div className="header-title-section">
+                <div className="title-content">
+                  <h1 className="header-title">{t('memory.title')}</h1>
+                </div>
+                <div className="global-memory-toggle">
+                  <span className="toggle-label">{t('memory.global_memory', 'Global Memory')}</span>
+                  <Switch checked={globalMemoryEnabled} onChange={handleGlobalMemoryToggle} size="small" />
+                  <span className={`toggle-status ${!globalMemoryEnabled ? 'disabled' : ''}`}>
+                    {globalMemoryEnabled ? t('common.enabled', 'ON') : t('common.disabled', 'OFF')}
+                  </span>
+                </div>
               </div>
-              <div className="header-actions">
+              <div className="header-utility">
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'refresh',
+                        label: t('common.refresh'),
+                        icon: <ReloadOutlined />,
+                        onClick: () => loadMemories(currentUser)
+                      },
+                      ...(currentUser !== DEFAULT_USER_ID
+                        ? [
+                            {
+                              key: 'divider-1',
+                              type: 'divider' as const
+                            },
+                            {
+                              key: 'deleteUser',
+                              label: t('memory.delete_user'),
+                              icon: <UserDeleteOutlined />,
+                              danger: true,
+                              onClick: () => handleDeleteUser(currentUser)
+                            }
+                          ]
+                        : [])
+                    ]
+                  }}
+                  trigger={['click']}
+                  placement="bottomRight">
+                  <Button
+                    className="settings-button"
+                    icon={<SettingOutlined />}
+                    onClick={() => setSettingsModalVisible(true)}
+                  />
+                </Dropdown>
+              </div>
+            </div>
+
+            <div className="user-stats-section">
+              <div className="stats-row">
+                <div className="stat-item">
+                  <UserOutlined className="stat-icon" />
+                  <span>{getUserDisplayName(currentUser)}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-icon">📚</span>
+                  <span>
+                    {allMemories.length} {allMemories.length === 1 ? t('memory.memory') : t('memory.title')}
+                  </span>
+                </div>
+              </div>
+              <div className="main-actions">
                 <Select
                   value={currentUser}
                   onChange={handleUserSwitch}
@@ -802,7 +1075,7 @@ const MemoriesPage = () => {
                   )}>
                   <Option value={DEFAULT_USER_ID}>
                     <Space>
-                      <Avatar size={20} className="user-avatar">
+                      <Avatar size={22} className="user-avatar">
                         {getUserAvatar(DEFAULT_USER_ID)}
                       </Avatar>
                       <span>{t('memory.default_user')}</span>
@@ -813,7 +1086,7 @@ const MemoriesPage = () => {
                     .map((user) => (
                       <Option key={user} value={user}>
                         <Space>
-                          <Avatar size={20} className="user-avatar">
+                          <Avatar size={22} className="user-avatar">
                             {getUserAvatar(user)}
                           </Avatar>
                           <span>{user}</span>
@@ -821,43 +1094,15 @@ const MemoriesPage = () => {
                       </Option>
                     ))}
                 </Select>
-                <Dropdown
-                  menu={{
-                    items: [
-                      {
-                        key: 'settings',
-                        label: t('common.settings'),
-                        icon: <SettingOutlined />,
-                        onClick: () => setSettingsModalVisible(true)
-                      },
-                      {
-                        key: 'refresh',
-                        label: t('common.refresh'),
-                        icon: <ReloadOutlined />,
-                        onClick: () => loadMemories(currentUser)
-                      },
-                      ...(currentUser !== DEFAULT_USER_ID
-                        ? [
-                            {
-                              key: 'deleteUser',
-                              label: t('memory.delete_user'),
-                              icon: <UserDeleteOutlined />,
-                              danger: true,
-                              onClick: () => handleDeleteUser(currentUser)
-                            }
-                          ]
-                        : [])
-                    ]
-                  }}
-                  trigger={['click']}
-                  placement="bottomRight">
-                  <Button type="text" icon={<MoreOutlined />} size="middle" />
-                </Dropdown>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddMemoryModalVisible(true)}>
+                <Button
+                  className="action-button primary-action"
+                  icon={<PlusOutlined />}
+                  onClick={() => setAddMemoryModalVisible(true)}>
                   {t('memory.add_memory')}
                 </Button>
               </div>
             </div>
+
             <div className="search-section">
               <Input.Search
                 className="search-input"

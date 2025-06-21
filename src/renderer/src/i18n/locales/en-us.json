@@ -424,7 +424,9 @@
         "pinyin.asc": "Sort by Pinyin (A-Z)",
         "pinyin.desc": "Sort by Pinyin (Z-A)"
       },
-      "no_results": "No results"
+      "no_results": "No results",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
     },
     "docs": {
       "title": "Docs"
@@ -2184,7 +2186,14 @@
       "delete_confirm_single": "Are you sure you want to delete this memory?",
       "total_memories": "total memories",
       "default": "Default",
-      "custom": "Custom"
+      "custom": "Custom",
+      "global_memory_enabled": "Global memory enabled",
+      "global_memory": "Global Memory",
+      "enable_global_memory_first": "Please enable global memory first",
+      "configure_memory_first": "Please configure memory settings first",
+      "global_memory_disabled_title": "Global Memory Disabled",
+      "global_memory_disabled_desc": "To use memory features, please enable global memory in assistant settings first.",
+      "go_to_memory_page": "Go to Memory Page"
     }
   }
 }
