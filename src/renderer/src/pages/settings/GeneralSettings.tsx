@@ -3,7 +3,7 @@ import { useSettings } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
 import { RootState, useAppDispatch } from '@renderer/store'
 import { setEnableDataCollection, setLanguage, setNotificationSettings } from '@renderer/store/settings'
-import { setProxyMode, setProxyUrl as _setProxyUrl } from '@renderer/store/settings'
+import { setCustomProxyUrl, setProxyMode, setProxyState, setProxyUrl as _setProxyUrl } from '@renderer/store/settings'
 import { LanguageVarious } from '@renderer/types'
 import { NotificationSource } from '@renderer/types/notification'
 import { isValidProxyUrl } from '@renderer/utils'
@@ -75,6 +75,8 @@ const GeneralSettings: FC = () => {
       return
     }
 
+    dispatch(setProxyState('enabled'))
+    dispatch(setCustomProxyUrl(proxyUrl))
     dispatch(_setProxyUrl(proxyUrl))
     window.api.setProxy(proxyUrl)
   }
@@ -87,12 +89,16 @@ const GeneralSettings: FC = () => {
 
   const onProxyModeChange = (mode: 'system' | 'custom' | 'none') => {
     dispatch(setProxyMode(mode))
+    dispatch(setProxyState('disabled'))
+
     if (mode === 'system') {
       window.api.setProxy('system')
       dispatch(_setProxyUrl(undefined))
     } else if (mode === 'none') {
       window.api.setProxy(undefined)
       dispatch(_setProxyUrl(undefined))
+    } else {
+      onSetProxyUrl()
     }
   }
 

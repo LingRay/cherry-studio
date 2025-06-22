@@ -10,12 +10,15 @@ import useNavBackgroundColor from '@renderer/hooks/useNavBackgroundColor'
 import { modelGenerating, useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
+import { useAppDispatch } from '@renderer/store'
+import { setProxyMode, setProxyState } from '@renderer/store/settings'
 import { ThemeMode } from '@renderer/types'
 import { isEmoji } from '@renderer/utils'
 import type { MenuProps } from 'antd'
 import { Avatar, Dropdown, Tooltip } from 'antd'
 import {
   CircleHelp,
+  Earth,
   FileSearch,
   Folder,
   Languages,
@@ -40,8 +43,9 @@ import UserPopup from '../Popups/UserPopup'
 const Sidebar: FC = () => {
   const { hideMinappPopup, openMinapp } = useMinappPopup()
   const { minappShow, currentMinappId } = useRuntime()
-  const { sidebarIcons } = useSettings()
+  const { sidebarIcons, proxyMode, proxyState, proxyUrl, customProxyUrl } = useSettings()
   const { pinned } = useMinapps()
+  const dispatch = useAppDispatch()
 
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -70,6 +74,19 @@ const Sidebar: FC = () => {
       url: isChinese ? 'https://docs.cherry-ai.com/' : 'https://docs.cherry-ai.com/cherry-studio-wen-dang/en-us',
       logo: AppLogo
     })
+  }
+
+  const onToggleProxy = () => {
+    if (proxyState === 'enabled') {
+      dispatch(setProxyState('disabled'))
+      dispatch(setProxyMode('none'))
+      window.api.setProxy(undefined)
+    } else {
+      dispatch(setProxyMode('custom'))
+      dispatch(setProxyState('enabled'))
+      window.api.setProxy(customProxyUrl || 'http://localhost:1080')
+    }
+    console.log('🚀 ~ onToggleProxy ~ onToggleProxy:', proxyState)
   }
 
   const isFullscreen = useFullscreen()
@@ -101,6 +118,14 @@ const Sidebar: FC = () => {
         )}
       </MainMenusContainer>
       <Menus>
+        <Tooltip
+          title={'proxy: ' + (proxyMode === 'custom' ? customProxyUrl : '--')}
+          mouseEnterDelay={0.8}
+          placement="right">
+          <Icon theme={theme} onClick={onToggleProxy} className={proxyState === 'enabled' ? 'active' : ''}>
+            <Earth size={20} className="icon" />
+          </Icon>
+        </Tooltip>
         <Tooltip title={t('docs.title')} mouseEnterDelay={0.8} placement="right">
           <Icon theme={theme} onClick={onOpenDocs} className={minappShow && currentMinappId === docsId ? 'active' : ''}>
             <CircleHelp size={20} className="icon" />

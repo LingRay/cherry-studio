@@ -45,6 +45,8 @@ export interface SettingsState {
   targetLanguage: TranslateLanguageVarious
   proxyMode: 'system' | 'custom' | 'none'
   proxyUrl?: string
+  customProxyUrl?: string
+  proxyState: 'disabled' | 'enabled'
   userName: string
   showPrompt: boolean
   showTokens: boolean
@@ -194,6 +196,7 @@ export const initialState: SettingsState = {
   targetLanguage: 'english' as TranslateLanguageVarious,
   proxyMode: 'system',
   proxyUrl: undefined,
+  proxyState: 'disabled',
   userName: '',
   showPrompt: true,
   showTokens: true,
@@ -358,6 +361,12 @@ const settingsSlice = createSlice({
     },
     setProxyUrl: (state, action: PayloadAction<string | undefined>) => {
       state.proxyUrl = action.payload
+    },
+    setCustomProxyUrl: (state, action: PayloadAction<string | undefined>) => {
+      state.customProxyUrl = action.payload
+    },
+    setProxyState: (state, action: PayloadAction<'disabled' | 'enabled'>) => {
+      state.proxyState = action.payload
     },
     setUserName: (state, action: PayloadAction<string>) => {
       state.userName = action.payload
@@ -694,6 +703,8 @@ export const {
   setTargetLanguage,
   setProxyMode,
   setProxyUrl,
+  setCustomProxyUrl,
+  setProxyState,
   setUserName,
   setShowPrompt,
   setShowTokens,
