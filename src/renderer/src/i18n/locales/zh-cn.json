@@ -1782,23 +1782,33 @@
         "zoom_out": "缩小界面",
         "zoom_reset": "重置缩放"
       },
-      "theme.system": "系统",
-      "theme.dark": "深色",
-      "theme.light": "浅色",
-      "theme.title": "主题",
-      "theme.color_primary": "主题颜色",
-      "theme.window.style.opaque": "不透明窗口",
-      "theme.window.style.title": "窗口样式",
-      "theme.window.style.transparent": "透明窗口",
+      "theme": {
+        "system": "系统",
+        "dark": "深色",
+        "light": "浅色",
+        "title": "主题",
+        "color_primary": "主题颜色",
+        "window": {
+          "style": {
+            "opaque": "不透明窗口",
+            "title": "窗口样式",
+            "transparent": "透明窗口"
+          }
+        }
+      },
       "title": "设置",
-      "topic.position": "话题位置",
-      "topic.position.left": "左侧",
-      "topic.position.right": "右侧",
-      "topic.show.time": "显示话题时间",
-      "topic.pin_to_top": "固定话题置顶",
-      "tray.onclose": "关闭时最小化到托盘",
-      "tray.show": "显示托盘图标",
-      "tray.title": "托盘",
+      "topic": {
+        "position": "话题位置",
+        "position.left": "左侧",
+        "position.right": "右侧",
+        "show.time": "显示话题时间",
+        "pin_to_top": "固定话题置顶"
+      },
+      "tray": {
+        "onclose": "关闭时最小化到托盘",
+        "show": "显示托盘图标",
+        "title": "托盘"
+      },
       "websearch": {
         "blacklist": "黑名单",
         "blacklist_description": "在搜索结果中不会出现以下网站的结果",
