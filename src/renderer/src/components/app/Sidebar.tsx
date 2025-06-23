@@ -43,7 +43,7 @@ import UserPopup from '../Popups/UserPopup'
 const Sidebar: FC = () => {
   const { hideMinappPopup, openMinapp } = useMinappPopup()
   const { minappShow, currentMinappId } = useRuntime()
-  const { sidebarIcons, proxyMode, proxyState, proxyUrl, customProxyUrl } = useSettings()
+  const { sidebarIcons, proxyMode, proxyState, customProxyUrl } = useSettings()
   const { pinned } = useMinapps()
   const dispatch = useAppDispatch()
 
