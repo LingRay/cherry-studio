@@ -157,6 +157,8 @@ export interface SettingsState {
   minappsOpenLinkExternal: boolean
   // 隐私设置
   enableDataCollection: boolean
+  enableSpellCheck: boolean
+  spellCheckLanguages: string[]
   enableQuickPanelTriggers: boolean
   enableBackspaceDeleteModel: boolean
   exportMenuOptions: {
@@ -301,6 +303,8 @@ export const initialState: SettingsState = {
   showOpenedMinappsInSidebar: true,
   minappsOpenLinkExternal: false,
   enableDataCollection: false,
+  enableSpellCheck: false,
+  spellCheckLanguages: [],
   enableQuickPanelTriggers: false,
   enableBackspaceDeleteModel: true,
   exportMenuOptions: {
@@ -666,6 +670,12 @@ const settingsSlice = createSlice({
     setEnableDataCollection: (state, action: PayloadAction<boolean>) => {
       state.enableDataCollection = action.payload
     },
+    setEnableSpellCheck: (state, action: PayloadAction<boolean>) => {
+      state.enableSpellCheck = action.payload
+    },
+    setSpellCheckLanguages: (state, action: PayloadAction<string[]>) => {
+      state.spellCheckLanguages = action.payload
+    },
     setExportMenuOptions: (state, action: PayloadAction<typeof initialState.exportMenuOptions>) => {
       state.exportMenuOptions = action.payload
     },
@@ -787,8 +797,10 @@ export const {
   setShowOpenedMinappsInSidebar,
   setMinappsOpenLinkExternal,
   setEnableDataCollection,
-  setEnableQuickPanelTriggers,
+  setEnableSpellCheck,
+  setSpellCheckLanguages,
   setExportMenuOptions,
+  setEnableQuickPanelTriggers,
   setEnableBackspaceDeleteModel,
   setOpenAISummaryText,
   setOpenAIServiceTier,
