@@ -181,27 +181,6 @@ const GeneralSettings: FC = () => {
         </SettingRow>
         <SettingDivider />
         <SettingRow>
-          <SettingRowTitle>{t('settings.proxy.mode.title')}</SettingRowTitle>
-          <Selector value={storeProxyMode} onChange={onProxyModeChange} options={proxyModeOptions} />
-        </SettingRow>
-        {storeProxyMode === 'custom' && (
-          <>
-            <SettingDivider />
-            <SettingRow>
-              <SettingRowTitle>{t('settings.proxy.title')}</SettingRowTitle>
-              <Input
-                placeholder="socks5://127.0.0.1:6153"
-                value={proxyUrl}
-                onChange={(e) => setProxyUrl(e.target.value)}
-                style={{ width: 180 }}
-                onBlur={() => onSetProxyUrl()}
-                type="url"
-              />
-            </SettingRow>
-          </>
-        )}
-        <SettingDivider />
-        <SettingRow>
           <SettingRowTitle>{t('settings.general.spell_check')}</SettingRowTitle>
           <Switch checked={enableSpellCheck} onChange={handleSpellCheckChange} />
         </SettingRow>
@@ -227,6 +206,27 @@ const GeneralSettings: FC = () => {
                     </Flex>
                   )
                 }))}
+              />
+            </SettingRow>
+          </>
+        )}
+        <SettingDivider />
+        <SettingRow>
+          <SettingRowTitle>{t('settings.proxy.mode.title')}</SettingRowTitle>
+          <Selector value={storeProxyMode} onChange={onProxyModeChange} options={proxyModeOptions} />
+        </SettingRow>
+        {storeProxyMode === 'custom' && (
+          <>
+            <SettingDivider />
+            <SettingRow>
+              <SettingRowTitle>{t('settings.proxy.title')}</SettingRowTitle>
+              <Input
+                placeholder="socks5://127.0.0.1:6153"
+                value={proxyUrl}
+                onChange={(e) => setProxyUrl(e.target.value)}
+                style={{ width: 180 }}
+                onBlur={() => onSetProxyUrl()}
+                type="url"
               />
             </SettingRow>
           </>
