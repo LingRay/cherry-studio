@@ -11,6 +11,7 @@ import {
   ThemeMode,
   TranslateLanguageVarious
 } from '@renderer/types'
+import { uuid } from '@renderer/utils'
 import { UpgradeChannel } from '@shared/config/constant'
 
 import { WebDAVSyncState } from './backup'
@@ -49,6 +50,7 @@ export interface SettingsState {
   customProxyUrl?: string
   proxyState: 'disabled' | 'enabled'
   userName: string
+  userId: string
   showPrompt: boolean
   showTokens: boolean
   showMessageDivider: boolean
@@ -184,7 +186,7 @@ export interface SettingsState {
   notification: {
     assistant: boolean
     backup: boolean
-    knowledgeEmbed: boolean
+    knowledge: boolean
   }
   defaultPaintingProvider: PaintingProvider
 }
@@ -202,6 +204,7 @@ export const initialState: SettingsState = {
   proxyUrl: undefined,
   proxyState: 'disabled',
   userName: '',
+  userId: uuid(),
   showPrompt: true,
   showTokens: true,
   showMessageDivider: true,
@@ -330,7 +333,7 @@ export const initialState: SettingsState = {
   notification: {
     assistant: false,
     backup: false,
-    knowledgeEmbed: false
+    knowledge: false
   },
   defaultPaintingProvider: 'aihubmix'
 }
