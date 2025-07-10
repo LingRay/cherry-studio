@@ -195,6 +195,16 @@ export const INITIAL_PROVIDERS: Provider[] = [
     enabled: false
   },
   {
+    id: 'new-api',
+    name: 'New API',
+    type: 'openai',
+    apiKey: '',
+    apiHost: 'http://localhost:3000',
+    models: SYSTEM_MODELS['new-api'],
+    isSystem: true,
+    enabled: false
+  },
+  {
     id: 'lmstudio',
     name: 'LM Studio',
     type: 'openai',
@@ -227,7 +237,7 @@ export const INITIAL_PROVIDERS: Provider[] = [
   {
     id: 'azure-openai',
     name: 'Azure OpenAI',
-    type: 'openai',
+    type: 'azure-openai',
     apiKey: '',
     apiHost: '',
     apiVersion: '',
@@ -604,8 +614,11 @@ const llmSlice = createSlice({
   name: 'llm',
   initialState: isLocalAi ? getIntegratedInitialState() : initialState,
   reducers: {
-    updateProvider: (state, action: PayloadAction<Provider>) => {
-      state.providers = state.providers.map((p) => (p.id === action.payload.id ? { ...p, ...action.payload } : p))
+    updateProvider: (state, action: PayloadAction<Partial<Provider> & { id: string }>) => {
+      const index = state.providers.findIndex((p) => p.id === action.payload.id)
+      if (index !== -1) {
+        Object.assign(state.providers[index], action.payload)
+      }
     },
     updateProviders: (state, action: PayloadAction<Provider[]>) => {
       state.providers = action.payload
