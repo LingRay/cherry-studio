@@ -1,4 +1,5 @@
 import { DeleteOutlined, SaveOutlined } from '@ant-design/icons'
+import { loggerService } from '@logger'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useMCPServer, useMCPServers } from '@renderer/hooks/useMCPServers'
 import MCPDescription from '@renderer/pages/settings/MCPSettings/McpDescription'
@@ -9,13 +10,15 @@ import TextArea from 'antd/es/input/TextArea'
 import { ChevronDown } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import styled from 'styled-components'
 
 import { SettingContainer, SettingDivider, SettingGroup, SettingTitle } from '..'
 import MCPPromptsSection from './McpPrompt'
 import MCPResourcesSection from './McpResource'
 import MCPToolsSection from './McpTool'
+
+const logger = loggerService.withContext('McpSettings')
 
 interface MCPFormValues {
   name: string
@@ -72,10 +75,9 @@ const parseKeyValueString = (str: string): Record<string, string> => {
 
 const McpSettings: React.FC = () => {
   const { t } = useTranslation()
-  const {
-    server: { id: serverId }
-  } = useLocation().state as { server: MCPServer }
-  const server = useMCPServer(serverId).server as MCPServer
+  const { serverId } = useParams<{ serverId: string }>()
+  const decodedServerId = serverId ? decodeURIComponent(serverId) : ''
+  const server = useMCPServer(decodedServerId).server as MCPServer
   const { deleteMCPServer, updateMCPServer } = useMCPServers()
   const [serverType, setServerType] = useState<MCPServer['type']>('stdio')
   const [form] = Form.useForm<MCPFormValues>()
@@ -315,7 +317,7 @@ const McpSettings: React.FC = () => {
       setLoading(false)
     } catch (error: any) {
       setLoading(false)
-      console.error('Failed to save MCP server settings:', error)
+      logger.error('Failed to save MCP server settings:', error)
     }
   }
 
