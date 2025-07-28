@@ -2,6 +2,7 @@ import type { WebSearchResultBlock } from '@anthropic-ai/sdk/resources'
 import type { GenerateImagesConfig, GroundingMetadata, PersonGeneration } from '@google/genai'
 import type OpenAI from 'openai'
 import type { CSSProperties } from 'react'
+import * as z from 'zod/v4'
 
 export * from './file'
 import type { FileMetadata } from './file'
@@ -123,6 +124,8 @@ export type LegacyMessage = {
 
 export type Usage = OpenAI.Completions.CompletionUsage & {
   thoughts_tokens?: number
+  // OpenRouter specific fields
+  cost?: number
 }
 
 export type Metrics = {
@@ -179,7 +182,7 @@ export type ProviderType =
   | 'vertexai'
   | 'mistral'
 
-export type ModelType = 'text' | 'vision' | 'embedding' | 'reasoning' | 'function_calling' | 'web_search'
+export type ModelType = 'text' | 'vision' | 'embedding' | 'reasoning' | 'function_calling' | 'web_search' | 'rerank'
 
 export type EndpointType = 'openai' | 'openai-response' | 'anthropic' | 'gemini' | 'image-generation' | 'jina-rerank'
 
@@ -189,6 +192,15 @@ export type ModelPricing = {
   currencySymbol?: string
 }
 
+export type ModelCapability = {
+  type: ModelType
+  /**
+   * 是否为用户手动选择，如果为true，则表示用户手动选择了该类型，否则表示用户手动禁止了该模型；如果为undefined，则表示使用默认值
+   * Is it manually selected by the user? If true, it means the user manually selected this type; otherwise, it means the user  * manually disabled the model.
+   */
+  isUserSelected?: boolean
+}
+
 export type Model = {
   id: string
   provider: string
@@ -196,6 +208,10 @@ export type Model = {
   group: string
   owned_by?: string
   description?: string
+  capabilities?: ModelCapability[]
+  /**
+   * @deprecated
+   */
   type?: ModelType[]
   pricing?: ModelPricing
   endpoint_type?: EndpointType
@@ -298,6 +314,7 @@ export interface DmxapiPainting extends PaintingParams {
   style_type?: string
   autoCreate?: boolean
   generationMode?: generationModeType
+  priceModel?: string
 }
 
 export interface TokenFluxPainting extends PaintingParams {
@@ -545,6 +562,9 @@ export type WebSearchProvider = {
   basicAuthUsername?: string
   basicAuthPassword?: string
   usingBrowser?: boolean
+  topicId?: string
+  parentSpanId?: string
+  modelName?: string
 }
 
 export type WebSearchProviderResult = {
@@ -651,6 +671,12 @@ export interface MCPToolInputSchema {
   properties: Record<string, object>
 }
 
+export const MCPToolOutputSchema = z.object({
+  type: z.literal('object'),
+  properties: z.record(z.string(), z.unknown()),
+  required: z.array(z.string())
+})
+
 export interface MCPTool {
   id: string
   serverId: string
@@ -658,6 +684,8 @@ export interface MCPTool {
   name: string
   description?: string
   inputSchema: MCPToolInputSchema
+  outputSchema?: z.infer<typeof MCPToolOutputSchema>
+  isBuiltIn?: boolean // 标识是否为内置工具，内置工具不需要通过MCP协议调用
 }
 
 export interface MCPPromptArguments {

@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
 import Selector from '@renderer/components/Selector'
 import { useTheme } from '@renderer/context/ThemeProvider'
-import { useSettings } from '@renderer/hooks/useSettings'
+import { useEnableDeveloperMode, useSettings } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
 import { RootState, useAppDispatch } from '@renderer/store'
 import {
@@ -44,6 +44,7 @@ const GeneralSettings: FC = () => {
   } = useSettings()
   const [proxyUrl, setProxyUrl] = useState<string | undefined>(storeProxyUrl)
   const { theme } = useTheme()
+  const { enableDeveloperMode, setEnableDeveloperMode } = useEnableDeveloperMode()
 
   const updateTray = (isShowTray: boolean) => {
     setTray(isShowTray)
@@ -97,7 +98,6 @@ const GeneralSettings: FC = () => {
     dispatch(setProxyState('enabled'))
     dispatch(setCustomProxyUrl(proxyUrl))
     dispatch(_setProxyUrl(proxyUrl))
-    window.api.setProxy(proxyUrl)
   }
 
   const proxyModeOptions: { value: 'system' | 'custom' | 'none'; label: string }[] = [
@@ -111,10 +111,8 @@ const GeneralSettings: FC = () => {
     dispatch(setProxyState('disabled'))
 
     if (mode === 'system') {
-      window.api.setProxy('system')
       dispatch(_setProxyUrl(undefined))
     } else if (mode === 'none') {
-      window.api.setProxy(undefined)
       dispatch(_setProxyUrl(undefined))
     } else {
       onSetProxyUrl()
@@ -327,6 +325,14 @@ const GeneralSettings: FC = () => {
               window.api.config.set('enableDataCollection', v)
             }}
           />
+        </SettingRow>
+      </SettingGroup>
+      <SettingGroup theme={theme}>
+        <SettingTitle>{t('settings.developer.title')}</SettingTitle>
+        <SettingDivider />
+        <SettingRow>
+          <SettingRowTitle>{t('settings.developer.enable_developer_mode')}</SettingRowTitle>
+          <Switch checked={enableDeveloperMode} onChange={setEnableDeveloperMode} />
         </SettingRow>
       </SettingGroup>
     </SettingContainer>
