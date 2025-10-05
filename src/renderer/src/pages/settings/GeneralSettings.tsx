@@ -1,7 +1,10 @@
 import { InfoCircleOutlined } from '@ant-design/icons'
+import { HStack } from '@renderer/components/Layout'
 import Selector from '@renderer/components/Selector'
+import { InfoTooltip } from '@renderer/components/TooltipIcons'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useEnableDeveloperMode, useSettings } from '@renderer/hooks/useSettings'
+import { useTimer } from '@renderer/hooks/useTimer'
 import i18n from '@renderer/i18n'
 import { RootState, useAppDispatch } from '@renderer/store'
 import {
@@ -10,6 +13,7 @@ import {
   setEnableSpellCheck,
   setLanguage,
   setNotificationSettings,
+  setProxyBypassRules as _setProxyBypassRules,
   setProxyMode,
   setProxyState,
   setProxyUrl as _setProxyUrl,
@@ -18,7 +22,8 @@ import {
 import { LanguageVarious } from '@renderer/types'
 import { NotificationSource } from '@renderer/types/notification'
 import { isValidProxyUrl } from '@renderer/utils'
-import { defaultLanguage } from '@shared/config/constant'
+import { formatErrorMessage } from '@renderer/utils/error'
+import { defaultByPassRules, defaultLanguage } from '@shared/config/constant'
 import { Flex, Input, Switch, Tooltip } from 'antd'
 import { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -30,6 +35,7 @@ const GeneralSettings: FC = () => {
   const {
     language,
     proxyUrl: storeProxyUrl,
+    proxyBypassRules: storeProxyBypassRules,
     setLaunch,
     setTray,
     launchOnBoot,
@@ -43,8 +49,10 @@ const GeneralSettings: FC = () => {
     setDisableHardwareAcceleration
   } = useSettings()
   const [proxyUrl, setProxyUrl] = useState<string | undefined>(storeProxyUrl)
+  const [proxyBypassRules, setProxyBypassRules] = useState<string | undefined>(storeProxyBypassRules)
   const { theme } = useTheme()
   const { enableDeveloperMode, setEnableDeveloperMode } = useEnableDeveloperMode()
+  const { setTimeoutTimer } = useTimer()
 
   const updateTray = (isShowTray: boolean) => {
     setTray(isShowTray)
@@ -91,13 +99,17 @@ const GeneralSettings: FC = () => {
 
   const onSetProxyUrl = () => {
     if (proxyUrl && !isValidProxyUrl(proxyUrl)) {
-      window.message.error({ content: t('message.error.invalid.proxy.url'), key: 'proxy-error' })
+      window.toast.error(t('message.error.invalid.proxy.url'))
       return
     }
 
     dispatch(setProxyState('enabled'))
     dispatch(setCustomProxyUrl(proxyUrl))
     dispatch(_setProxyUrl(proxyUrl))
+  }
+
+  const onSetProxyBypassRules = () => {
+    dispatch(_setProxyBypassRules(proxyBypassRules))
   }
 
   const proxyModeOptions: { value: 'system' | 'custom' | 'none'; label: string }[] = [
@@ -167,17 +179,18 @@ const GeneralSettings: FC = () => {
         try {
           setDisableHardwareAcceleration(checked)
         } catch (error) {
-          window.message.error({
-            content: (error as Error).message,
-            key: 'disable-hardware-acceleration-error'
-          })
+          window.toast.error(formatErrorMessage(error))
           return
         }
 
         // 重启应用
-        setTimeout(() => {
-          window.api.relaunchApp()
-        }, 500)
+        setTimeoutTimer(
+          'handleHardwareAccelerationChange',
+          () => {
+            window.api.relaunchApp()
+          },
+          500
+        )
       }
     })
   }
@@ -208,14 +221,47 @@ const GeneralSettings: FC = () => {
         </SettingRow>
         <SettingDivider />
         <SettingRow>
-          <SettingRowTitle>{t('settings.general.spell_check')}</SettingRowTitle>
-          <Switch checked={enableSpellCheck} onChange={handleSpellCheckChange} />
+          <SettingRowTitle>{t('settings.proxy.mode.title')}</SettingRowTitle>
+          <Selector value={storeProxyMode} onChange={onProxyModeChange} options={proxyModeOptions} />
         </SettingRow>
-        {enableSpellCheck && (
+        {storeProxyMode === 'custom' && (
           <>
             <SettingDivider />
             <SettingRow>
-              <SettingRowTitle>{t('settings.general.spell_check.languages')}</SettingRowTitle>
+              <SettingRowTitle>{t('settings.proxy.address')}</SettingRowTitle>
+              <Input
+                spellCheck={false}
+                placeholder="socks5://127.0.0.1:6153"
+                value={proxyUrl}
+                onChange={(e) => setProxyUrl(e.target.value)}
+                style={{ width: 180 }}
+                onBlur={() => onSetProxyUrl()}
+                type="url"
+              />
+            </SettingRow>
+          </>
+        )}
+        {storeProxyMode === 'custom' && (
+          <>
+            <SettingDivider />
+            <SettingRow>
+              <SettingRowTitle>{t('settings.proxy.bypass')}</SettingRowTitle>
+              <Input
+                spellCheck={false}
+                placeholder={defaultByPassRules}
+                value={proxyBypassRules}
+                onChange={(e) => setProxyBypassRules(e.target.value)}
+                style={{ width: 180 }}
+                onBlur={() => onSetProxyBypassRules()}
+              />
+            </SettingRow>
+          </>
+        )}
+        <SettingDivider />
+        <SettingRow>
+          <HStack justifyContent="space-between" alignItems="center" style={{ flex: 1, marginRight: 16 }}>
+            <SettingRowTitle>{t('settings.general.spell_check.label')}</SettingRowTitle>
+            {enableSpellCheck && (
               <Selector<string>
                 size={14}
                 multiple
@@ -234,30 +280,10 @@ const GeneralSettings: FC = () => {
                   )
                 }))}
               />
-            </SettingRow>
-          </>
-        )}
-        <SettingDivider />
-        <SettingRow>
-          <SettingRowTitle>{t('settings.proxy.mode.title')}</SettingRowTitle>
-          <Selector value={storeProxyMode} onChange={onProxyModeChange} options={proxyModeOptions} />
+            )}
+          </HStack>
+          <Switch checked={enableSpellCheck} onChange={handleSpellCheckChange} />
         </SettingRow>
-        {storeProxyMode === 'custom' && (
-          <>
-            <SettingDivider />
-            <SettingRow>
-              <SettingRowTitle>{t('settings.proxy.address')}</SettingRowTitle>
-              <Input
-                placeholder="socks5://127.0.0.1:6153"
-                value={proxyUrl}
-                onChange={(e) => setProxyUrl(e.target.value)}
-                style={{ width: 180 }}
-                onBlur={() => onSetProxyUrl()}
-                type="url"
-              />
-            </SettingRow>
-          </>
-        )}
         <SettingDivider />
         <SettingRow>
           <SettingRowTitle>{t('settings.hardware_acceleration.title')}</SettingRowTitle>
@@ -331,7 +357,10 @@ const GeneralSettings: FC = () => {
         <SettingTitle>{t('settings.developer.title')}</SettingTitle>
         <SettingDivider />
         <SettingRow>
-          <SettingRowTitle>{t('settings.developer.enable_developer_mode')}</SettingRowTitle>
+          <Flex align="center" gap={4}>
+            <SettingRowTitle>{t('settings.developer.enable_developer_mode')}</SettingRowTitle>
+            <InfoTooltip title={t('settings.developer.help')} />
+          </Flex>
           <Switch checked={enableDeveloperMode} onChange={setEnableDeveloperMode} />
         </SettingRow>
       </SettingGroup>

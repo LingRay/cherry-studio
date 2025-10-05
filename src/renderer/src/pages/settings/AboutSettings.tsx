@@ -7,14 +7,14 @@ import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
 import i18n from '@renderer/i18n'
-import { useAppDispatch } from '@renderer/store'
+import { handleSaveData, useAppDispatch } from '@renderer/store'
 import { setUpdateState } from '@renderer/store/runtime'
 import { ThemeMode } from '@renderer/types'
-import { compareVersions, runAsyncFunction } from '@renderer/utils'
+import { runAsyncFunction } from '@renderer/utils'
 import { UpgradeChannel } from '@shared/config/constant'
 import { Avatar, Button, Progress, Radio, Row, Switch, Tag, Tooltip } from 'antd'
 import { debounce } from 'lodash'
-import { Bug, FileCheck, Github, Globe, Mail, Rss } from 'lucide-react'
+import { Bug, FileCheck, Globe, Mail, Rss } from 'lucide-react'
 import { BadgeQuestionMark } from 'lucide-react'
 import { FC, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -32,7 +32,7 @@ const AboutSettings: FC = () => {
   const { theme } = useTheme()
   const dispatch = useAppDispatch()
   const { update } = useRuntime()
-  const { openMinapp } = useMinappPopup()
+  const { openSmartMinapp } = useMinappPopup()
 
   const onCheckUpdate = debounce(
     async () => {
@@ -41,6 +41,7 @@ const AboutSettings: FC = () => {
       }
 
       if (update.downloaded) {
+        await handleSaveData()
         window.api.showUpdateDialog()
         return
       }
@@ -50,7 +51,7 @@ const AboutSettings: FC = () => {
       try {
         await window.api.checkForUpdate()
       } catch (error) {
-        window.message.error(t('settings.about.updateError'))
+        window.toast.error(t('settings.about.updateError'))
       }
 
       dispatch(setUpdateState({ checking: false }))
@@ -78,7 +79,7 @@ const AboutSettings: FC = () => {
 
   const showLicense = async () => {
     const { appPath } = await window.api.getAppInfo()
-    openMinapp({
+    openSmartMinapp({
       id: 'cherrystudio-license',
       name: t('settings.about.license.title'),
       url: `file://${appPath}/resources/cherry-studio/license.html`,
@@ -88,15 +89,13 @@ const AboutSettings: FC = () => {
 
   const showReleases = async () => {
     const { appPath } = await window.api.getAppInfo()
-    openMinapp({
+    openSmartMinapp({
       id: 'cherrystudio-releases',
       name: t('settings.about.releases.title'),
       url: `file://${appPath}/resources/cherry-studio/releases.html?theme=${theme === ThemeMode.dark ? 'dark' : 'light'}`,
       logo: AppLogo
     })
   }
-
-  const hasNewVersion = update?.info?.version && version ? compareVersions(update.info.version, version) > 0 : false
 
   const currentChannelByVersion =
     [
@@ -106,7 +105,7 @@ const AboutSettings: FC = () => {
 
   const handleTestChannelChange = async (value: UpgradeChannel) => {
     if (testPlan && currentChannelByVersion !== UpgradeChannel.LATEST && value !== currentChannelByVersion) {
-      window.message.warning(t('settings.general.test_plan.version_channel_not_match'))
+      window.toast.warning(t('settings.general.test_plan.version_channel_not_match'))
     }
     setTestChannel(value)
     // Clear update info when switching upgrade channel
@@ -226,7 +225,7 @@ const AboutSettings: FC = () => {
                 ? t('settings.about.downloading')
                 : update.available
                   ? t('settings.about.checkUpdate.available')
-                  : t('settings.about.checkUpdate')}
+                  : t('settings.about.checkUpdate.label')}
             </CheckUpdateButton>
           )}
         </AboutHeader>
@@ -266,7 +265,7 @@ const AboutSettings: FC = () => {
           </>
         )}
       </SettingGroup>
-      {hasNewVersion && update.info && (
+      {update.info && update.available && (
         <SettingGroup theme={theme}>
           <SettingRow>
             <SettingRowTitle>
@@ -274,7 +273,7 @@ const AboutSettings: FC = () => {
               <IndicatorLight color="green" />
             </SettingRowTitle>
           </SettingRow>
-          <UpdateNotesWrapper>
+          <UpdateNotesWrapper className="markdown">
             <Markdown>
               {typeof update.info.releaseNotes === 'string'
                 ? update.info.releaseNotes.replace(/\n/g, '\n\n')
@@ -310,7 +309,7 @@ const AboutSettings: FC = () => {
         <SettingDivider />
         <SettingRow>
           <SettingRowTitle>
-            <Github size={18} />
+            <GithubOutlined size={18} />
             {t('settings.about.feedback.title')}
           </SettingRowTitle>
           <Button onClick={() => onOpenWebsite('https://github.com/CherryHQ/cherry-studio/issues/new/choose')}>

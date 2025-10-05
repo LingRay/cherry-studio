@@ -1,6 +1,7 @@
 import { loggerService } from '@logger'
 import { Model, ModelType, Provider } from '@renderer/types'
 import { ModalFuncProps } from 'antd'
+import { isEqual } from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
 
 const logger = loggerService.withContext('Utils')
@@ -55,10 +56,6 @@ export const waitAsyncFunction = (
 }
 
 export const uuid = () => uuidv4()
-
-export function isFreeModel(model: Model) {
-  return (model.id + model.name).toLocaleLowerCase().includes('free')
-}
 
 /**
  * 从错误对象中提取错误信息。
@@ -147,25 +144,6 @@ export function hasPath(url: string): boolean {
 }
 
 /**
- * 比较两个版本号字符串。
- * @param {string} v1 第一个版本号
- * @param {string} v2 第二个版本号
- * @returns {number} 比较结果，1 表示 v1 大于 v2，-1 表示 v1 小于 v2，0 表示相等
- */
-export const compareVersions = (v1: string, v2: string): number => {
-  const v1Parts = v1.split('.').map(Number)
-  const v2Parts = v2.split('.').map(Number)
-
-  for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-    const v1Part = v1Parts[i] || 0
-    const v2Part = v2Parts[i] || 0
-    if (v1Part > v2Part) return 1
-    if (v1Part < v2Part) return -1
-  }
-  return 0
-}
-
-/**
  * 显示确认模态框。
  * @param {ModalFuncProps} params 模态框参数
  * @returns {Promise<boolean>} 用户确认返回 true，取消返回 false
@@ -227,6 +205,10 @@ export function isOpenAIProvider(provider: Provider): boolean {
   return !['anthropic', 'gemini', 'vertexai'].includes(provider.type)
 }
 
+export function isAnthropicProvider(provider: Provider): boolean {
+  return provider.type === 'anthropic'
+}
+
 /**
  * 判断模型是否为用户手动选择
  * @param {Model} model 模型对象
@@ -238,8 +220,13 @@ export function isUserSelectedModelType(model: Model, type: ModelType): boolean 
   return t ? t.isUserSelected : undefined
 }
 
+export function uniqueObjectArray<T>(array: T[]): T[] {
+  return array.filter((obj, index, self) => index === self.findIndex((t) => isEqual(t, obj)))
+}
+
 export * from './api'
 export * from './collection'
+export * from './dataLimit'
 export * from './file'
 export * from './image'
 export * from './json'

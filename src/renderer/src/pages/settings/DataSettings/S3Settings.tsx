@@ -3,6 +3,7 @@ import { HStack } from '@renderer/components/Layout'
 import { S3BackupManager } from '@renderer/components/S3BackupManager'
 import { S3BackupModal, useS3BackupModal } from '@renderer/components/S3Modals'
 import Selector from '@renderer/components/Selector'
+import { AppLogo } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useSettings } from '@renderer/hooks/useSettings'
@@ -47,7 +48,7 @@ const S3Settings: FC = () => {
   const dispatch = useAppDispatch()
   const { theme } = useTheme()
   const { t } = useTranslation()
-  const { openMinapp } = useMinappPopup()
+  const { openSmartMinapp } = useMinappPopup()
 
   const { s3Sync } = useAppSelector((state) => state.backup)
 
@@ -62,10 +63,11 @@ const S3Settings: FC = () => {
   }
 
   const handleTitleClick = () => {
-    openMinapp({
+    openSmartMinapp({
       id: 's3-help',
       name: 'S3 Compatible Storage Help',
-      url: 'https://docs.cherry-ai.com/data-settings/s3-compatible'
+      url: 'https://docs.cherry-ai.com/data-settings/s3-compatible',
+      logo: AppLogo
     })
   }
 
@@ -117,7 +119,7 @@ const S3Settings: FC = () => {
   return (
     <SettingGroup theme={theme}>
       <SettingTitle style={{ justifyContent: 'flex-start', gap: 10 }}>
-        {t('settings.data.s3.title')}
+        {t('settings.data.s3.title.label')}
         <Tooltip title={t('settings.data.s3.title.tooltip')} placement="right">
           <InfoCircleOutlined style={{ color: 'var(--color-text-2)', cursor: 'pointer' }} onClick={handleTitleClick} />
         </Tooltip>
@@ -125,7 +127,7 @@ const S3Settings: FC = () => {
       <SettingHelpText>{t('settings.data.s3.title.help')}</SettingHelpText>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.endpoint')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.endpoint.label')}</SettingRowTitle>
         <Input
           placeholder={t('settings.data.s3.endpoint.placeholder')}
           value={endpoint}
@@ -137,7 +139,7 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.region')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.region.label')}</SettingRowTitle>
         <Input
           placeholder={t('settings.data.s3.region.placeholder')}
           value={region}
@@ -148,7 +150,7 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.bucket')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.bucket.label')}</SettingRowTitle>
         <Input
           placeholder={t('settings.data.s3.bucket.placeholder')}
           value={bucket}
@@ -159,7 +161,7 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.accessKeyId')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.accessKeyId.label')}</SettingRowTitle>
         <Input
           placeholder={t('settings.data.s3.accessKeyId.placeholder')}
           value={accessKeyId}
@@ -170,7 +172,7 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.secretAccessKey')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.secretAccessKey.label')}</SettingRowTitle>
         <Input.Password
           placeholder={t('settings.data.s3.secretAccessKey.placeholder')}
           value={secretAccessKey}
@@ -181,7 +183,7 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.root')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.root.label')}</SettingRowTitle>
         <Input
           placeholder={t('settings.data.s3.root.placeholder')}
           value={root}
@@ -211,7 +213,7 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.autoSync')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.autoSync.label')}</SettingRowTitle>
         <Selector
           size={14}
           value={syncInterval}
@@ -233,7 +235,7 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.maxBackups')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.maxBackups.label')}</SettingRowTitle>
         <Selector
           size={14}
           value={maxBackups}
@@ -252,7 +254,7 @@ const S3Settings: FC = () => {
       </SettingRow>
       <SettingDivider />
       <SettingRow>
-        <SettingRowTitle>{t('settings.data.s3.skipBackupFile')}</SettingRowTitle>
+        <SettingRowTitle>{t('settings.data.s3.skipBackupFile.label')}</SettingRowTitle>
         <Switch checked={skipBackupFile} onChange={onSkipBackupFilesChange} />
       </SettingRow>
       <SettingRow>
@@ -262,7 +264,7 @@ const S3Settings: FC = () => {
         <>
           <SettingDivider />
           <SettingRow>
-            <SettingRowTitle>{t('settings.data.s3.syncStatus')}</SettingRowTitle>
+            <SettingRowTitle>{t('settings.data.s3.syncStatus.label')}</SettingRowTitle>
             {renderSyncStatus()}
           </SettingRow>
         </>

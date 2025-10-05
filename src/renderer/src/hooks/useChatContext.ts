@@ -97,7 +97,7 @@ export const useChatContext = (activeTopic: Topic) => {
   const handleMultiSelectAction = useCallback(
     async (actionType: string, messageIds: string[]) => {
       if (messageIds.length === 0) {
-        window.message.warning(t('chat.multiple.select.empty'))
+        window.toast.warning(t('chat.multiple.select.empty'))
         return
       }
 
@@ -115,16 +115,17 @@ export const useChatContext = (activeTopic: Topic) => {
             onOk: async () => {
               try {
                 await Promise.all(messageIds.map((messageId) => deleteMessage(messageId)))
-                window.message.success(t('message.delete.success'))
+                window.toast.success(t('message.delete.success'))
                 handleToggleMultiSelectMode(false)
               } catch (error) {
                 logger.error('Failed to delete messages:', error as Error)
-                window.message.error(t('message.delete.failed'))
+                window.toast.error(t('message.delete.failed'))
               }
             }
           })
           break
         case 'save': {
+          // 筛选消息，实际并非assistant messages，而是可能包含user messages
           const assistantMessages = messages.filter((msg) => messageIds.includes(msg.id))
           if (assistantMessages.length > 0) {
             const contentToSave = assistantMessages
@@ -141,10 +142,10 @@ export const useChatContext = (activeTopic: Topic) => {
               .join('\n\n---\n\n')
             const fileName = `chat_export_${new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')}.md`
             await window.api.file.save(fileName, contentToSave)
-            window.message.success({ content: t('message.save.success.title'), key: 'save-messages' })
+            window.toast.success(t('message.save.success.title'))
             handleToggleMultiSelectMode(false)
           } else {
-            window.message.warning(t('message.save.no.assistant'))
+            // 这个分支不会进入 因为 messageIds.length === 0 已提前返回，需要简化掉
           }
           break
         }
@@ -164,10 +165,10 @@ export const useChatContext = (activeTopic: Topic) => {
               })
               .join('\n\n---\n\n')
             navigator.clipboard.writeText(contentToCopy)
-            window.message.success({ content: t('message.copied'), key: 'copy-messages' })
+            window.toast.success(t('message.copied'))
             handleToggleMultiSelectMode(false)
           } else {
-            window.message.warning(t('message.copy.no.assistant'))
+            // 和上面一样
           }
           break
         }

@@ -17,17 +17,16 @@ import * as fs from 'node:fs'
 import path from 'node:path'
 
 import { RAGApplication, RAGApplicationBuilder } from '@cherrystudio/embedjs'
-import type { ExtractChunkData } from '@cherrystudio/embedjs-interfaces'
 import { LibSqlDb } from '@cherrystudio/embedjs-libsql'
 import { SitemapLoader } from '@cherrystudio/embedjs-loader-sitemap'
 import { WebLoader } from '@cherrystudio/embedjs-loader-web'
 import { loggerService } from '@logger'
-import Embeddings from '@main/knowledge/embeddings/Embeddings'
-import { addFileLoader } from '@main/knowledge/loader'
-import { NoteLoader } from '@main/knowledge/loader/noteLoader'
-import OcrProvider from '@main/knowledge/ocr/OcrProvider'
+import Embeddings from '@main/knowledge/embedjs/embeddings/Embeddings'
+import { addFileLoader } from '@main/knowledge/embedjs/loader'
+import { NoteLoader } from '@main/knowledge/embedjs/loader/noteLoader'
 import PreprocessProvider from '@main/knowledge/preprocess/PreprocessProvider'
 import Reranker from '@main/knowledge/reranker/Reranker'
+import { fileStorage } from '@main/services/FileStorage'
 import { windowService } from '@main/services/WindowService'
 import { getDataPath } from '@main/utils'
 import { getAllFiles } from '@main/utils/file'
@@ -35,10 +34,10 @@ import { TraceMethod } from '@mcp-trace/trace-core'
 import { MB } from '@shared/config/constant'
 import type { LoaderReturn } from '@shared/config/types'
 import { IpcChannel } from '@shared/IpcChannel'
-import { FileMetadata, KnowledgeBaseParams, KnowledgeItem } from '@types'
+import { FileMetadata, KnowledgeBaseParams, KnowledgeItem, KnowledgeSearchResult } from '@types'
 import { v4 as uuidv4 } from 'uuid'
 
-const logger = loggerService.withContext('KnowledgeService')
+const logger = loggerService.withContext('MainKnowledgeService')
 
 export interface KnowledgeBaseAddItemOptions {
   base: KnowledgeBaseParams
@@ -660,7 +659,7 @@ class KnowledgeService {
   public async search(
     _: Electron.IpcMainInvokeEvent,
     { search, base }: { search: string; base: KnowledgeBaseParams }
-  ): Promise<ExtractChunkData[]> {
+  ): Promise<KnowledgeSearchResult[]> {
     const ragApplication = await this.getRagApplication(base)
     return await ragApplication.search(search)
   }
@@ -668,8 +667,8 @@ class KnowledgeService {
   @TraceMethod({ spanName: 'rerank', tag: 'Knowledge' })
   public async rerank(
     _: Electron.IpcMainInvokeEvent,
-    { search, base, results }: { search: string; base: KnowledgeBaseParams; results: ExtractChunkData[] }
-  ): Promise<ExtractChunkData[]> {
+    { search, base, results }: { search: string; base: KnowledgeBaseParams; results: KnowledgeSearchResult[] }
+  ): Promise<KnowledgeSearchResult[]> {
     if (results.length === 0) {
       return results
     }
@@ -687,23 +686,19 @@ class KnowledgeService {
     userId: string
   ): Promise<FileMetadata> => {
     let fileToProcess: FileMetadata = file
-    if (base.preprocessOrOcrProvider && file.ext.toLowerCase() === '.pdf') {
+    if (base.preprocessProvider && file.ext.toLowerCase() === '.pdf') {
       try {
-        let provider: PreprocessProvider | OcrProvider
-        if (base.preprocessOrOcrProvider.type === 'preprocess') {
-          provider = new PreprocessProvider(base.preprocessOrOcrProvider.provider, userId)
-        } else {
-          provider = new OcrProvider(base.preprocessOrOcrProvider.provider)
-        }
+        const provider = new PreprocessProvider(base.preprocessProvider.provider, userId)
+        const filePath = fileStorage.getFilePathById(file)
         // Check if file has already been preprocessed
         const alreadyProcessed = await provider.checkIfAlreadyProcessed(file)
         if (alreadyProcessed) {
-          logger.debug(`File already preprocess processed, using cached result: ${file.path}`)
+          logger.debug(`File already preprocess processed, using cached result: ${filePath}`)
           return alreadyProcessed
         }
 
         // Execute preprocessing
-        logger.debug(`Starting preprocess processing for scanned PDF: ${file.path}`)
+        logger.debug(`Starting preprocess processing for scanned PDF: ${filePath}`)
         const { processedFile, quota } = await provider.parseFile(item.id, file)
         fileToProcess = processedFile
         const mainWindow = windowService.getMainWindow()
@@ -728,8 +723,8 @@ class KnowledgeService {
     userId: string
   ): Promise<number> => {
     try {
-      if (base.preprocessOrOcrProvider && base.preprocessOrOcrProvider.type === 'preprocess') {
-        const provider = new PreprocessProvider(base.preprocessOrOcrProvider.provider, userId)
+      if (base.preprocessProvider && base.preprocessProvider.type === 'preprocess') {
+        const provider = new PreprocessProvider(base.preprocessProvider.provider, userId)
         return await provider.checkQuota()
       }
       throw new Error('No preprocess provider configured')

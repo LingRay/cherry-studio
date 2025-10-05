@@ -1,6 +1,6 @@
 import EmojiAvatar from '@renderer/components/Avatar/EmojiAvatar'
 import { isMac } from '@renderer/config/constant'
-import { AppLogo, UserAvatar } from '@renderer/config/env'
+import { UserAvatar } from '@renderer/config/env'
 import { useTheme } from '@renderer/context/ThemeProvider'
 import useAvatar from '@renderer/hooks/useAvatar'
 import { useFullscreen } from '@renderer/hooks/useFullscreen'
@@ -9,21 +9,23 @@ import { useMinapps } from '@renderer/hooks/useMinapps'
 import useNavBackgroundColor from '@renderer/hooks/useNavBackgroundColor'
 import { modelGenerating, useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
-import i18n from '@renderer/i18n'
+import { getSidebarIconLabel, getThemeModeLabel } from '@renderer/i18n/label'
 import { useAppDispatch } from '@renderer/store'
 import { setProxyMode, setProxyState } from '@renderer/store/settings'
 import { ThemeMode } from '@renderer/types'
 import { isEmoji } from '@renderer/utils'
 import { Avatar, Tooltip } from 'antd'
 import {
-  CircleHelp,
+  Code,
   Earth,
   FileSearch,
   Folder,
   Languages,
   LayoutGrid,
   MessageSquare,
+  Monitor,
   Moon,
+  NotepadText,
   Palette,
   Settings,
   Sparkle,
@@ -38,8 +40,8 @@ import UserPopup from '../Popups/UserPopup'
 import { SidebarOpenedMinappTabs, SidebarPinnedApps } from './PinnedMinapps'
 
 const Sidebar: FC = () => {
-  const { hideMinappPopup, openMinapp } = useMinappPopup()
-  const { minappShow, currentMinappId } = useRuntime()
+  const { hideMinappPopup } = useMinappPopup()
+  const { minappShow } = useRuntime()
   const { sidebarIcons, proxyMode, proxyState, customProxyUrl } = useSettings()
   const { pinned } = useMinapps()
   const dispatch = useAppDispatch()
@@ -47,7 +49,7 @@ const Sidebar: FC = () => {
   const { pathname } = useLocation()
   const navigate = useNavigate()
 
-  const { theme, setTheme } = useTheme()
+  const { theme, settedTheme, toggleTheme } = useTheme()
   const avatar = useAvatar()
   const { t } = useTranslation()
 
@@ -60,17 +62,6 @@ const Sidebar: FC = () => {
   const to = async (path: string) => {
     await modelGenerating()
     navigate(path)
-  }
-
-  const docsId = 'cherrystudio-docs'
-  const onOpenDocs = () => {
-    const isChinese = i18n.language.startsWith('zh')
-    openMinapp({
-      id: docsId,
-      name: t('docs.title'),
-      url: isChinese ? 'https://docs.cherry-ai.com/' : 'https://docs.cherry-ai.com/cherry-studio-wen-dang/en-us',
-      logo: AppLogo
-    })
   }
 
   const onToggleProxy = () => {
@@ -123,17 +114,18 @@ const Sidebar: FC = () => {
             <Earth size={20} className="icon" />
           </Icon>
         </Tooltip>
-        <Tooltip title={t('docs.title')} mouseEnterDelay={0.8} placement="right">
-          <Icon theme={theme} onClick={onOpenDocs} className={minappShow && currentMinappId === docsId ? 'active' : ''}>
-            <CircleHelp size={20} className="icon" />
-          </Icon>
-        </Tooltip>
         <Tooltip
-          title={t('settings.theme.title') + ': ' + t(`settings.theme.${theme}`)}
+          title={t('settings.theme.title') + ': ' + getThemeModeLabel(settedTheme)}
           mouseEnterDelay={0.8}
           placement="right">
-          <Icon theme={theme} onClick={() => setTheme(theme === ThemeMode.dark ? ThemeMode.light : ThemeMode.dark)}>
-            {theme === ThemeMode.dark ? <Moon size={20} className="icon" /> : <Sun size={20} className="icon" />}
+          <Icon theme={theme} onClick={toggleTheme}>
+            {settedTheme === ThemeMode.dark ? (
+              <Moon size={20} className="icon" />
+            ) : settedTheme === ThemeMode.light ? (
+              <Sun size={20} className="icon" />
+            ) : (
+              <Monitor size={20} className="icon" />
+            )}
           </Icon>
         </Tooltip>
         <Tooltip title={t('settings.title')} mouseEnterDelay={0.8} placement="right">
@@ -154,7 +146,6 @@ const Sidebar: FC = () => {
 
 const MainMenus: FC = () => {
   const { hideMinappPopup } = useMinappPopup()
-  const { t } = useTranslation()
   const { pathname } = useLocation()
   const { sidebarIcons, defaultPaintingProvider } = useSettings()
   const { minappShow } = useRuntime()
@@ -171,7 +162,9 @@ const MainMenus: FC = () => {
     translate: <Languages size={18} className="icon" />,
     minapp: <LayoutGrid size={18} className="icon" />,
     knowledge: <FileSearch size={18} className="icon" />,
-    files: <Folder size={17} className="icon" />
+    files: <Folder size={18} className="icon" />,
+    notes: <NotepadText size={18} className="icon" />,
+    code_tools: <Code size={18} className="icon" />
   }
 
   const pathMap = {
@@ -181,7 +174,9 @@ const MainMenus: FC = () => {
     translate: '/translate',
     minapp: '/apps',
     knowledge: '/knowledge',
-    files: '/files'
+    files: '/files',
+    code_tools: '/code',
+    notes: '/notes'
   }
 
   return sidebarIcons.visible.map((icon) => {
@@ -189,7 +184,7 @@ const MainMenus: FC = () => {
     const isActive = path === '/' ? isRoute(path) : isRoutes(path)
 
     return (
-      <Tooltip key={icon} title={t(`${icon}.title`)} mouseEnterDelay={0.8} placement="right">
+      <Tooltip key={icon} title={getSidebarIconLabel(icon)} mouseEnterDelay={0.8} placement="right">
         <StyledLink
           onClick={async () => {
             hideMinappPopup()
@@ -215,7 +210,7 @@ const Container = styled.div<{ $isFullscreen: boolean }>`
   min-width: var(--sidebar-width);
   height: ${({ $isFullscreen }) => (isMac && !$isFullscreen ? 'calc(100vh - var(--navbar-height))' : '100vh')};
   -webkit-app-region: drag !important;
-  margin-top: ${({ $isFullscreen }) => (isMac && !$isFullscreen ? 'var(--navbar-height)' : 0)};
+  margin-top: ${({ $isFullscreen }) => (isMac && !$isFullscreen ? 'env(titlebar-area-height)' : 0)};
 
   .sidebar-avatar {
     margin-bottom: ${isMac ? '12px' : '12px'};

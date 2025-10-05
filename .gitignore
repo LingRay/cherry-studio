@@ -37,6 +37,7 @@ dist
 out
 mcp_server
 stats.html
+.eslintcache
 
 # ENV
 .env
@@ -50,13 +51,20 @@ local
 .cursor/*
 .claude/*
 .gemini/*
+.qwen/*
 .trae/*
 .claude-code-router/*
+.codebuddy/*
+.zed/*
+CLAUDE.local.md
 
 # vitest
 coverage
 .vitest-cache
 vitest.config.*.timestamp-*
+
+# TypeScript incremental build
+.tsbuildinfo
 
 # playwright
 playwright-report

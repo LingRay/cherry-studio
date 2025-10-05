@@ -8,26 +8,39 @@ import KnowledgeQueue from '@renderer/queue/KnowledgeQueue'
 import MemoryService from '@renderer/services/MemoryService'
 import { useAppDispatch } from '@renderer/store'
 import { useAppSelector } from '@renderer/store'
+import { handleSaveData } from '@renderer/store'
 import { selectMemoryConfig } from '@renderer/store/memory'
 import { setAvatar, setFilesPath, setResourcesPath, setUpdateState } from '@renderer/store/runtime'
 import { delay, runAsyncFunction } from '@renderer/utils'
+import { checkDataLimit } from '@renderer/utils'
 import { defaultLanguage } from '@shared/config/constant'
+import { IpcChannel } from '@shared/IpcChannel'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect } from 'react'
 
 import { useDefaultModel } from './useAssistant'
 import useFullScreenNotice from './useFullScreenNotice'
 import { useRuntime } from './useRuntime'
-import { useSettings } from './useSettings'
+import { useNavbarPosition, useSettings } from './useSettings'
 import useUpdateHandler from './useUpdateHandler'
 
 const logger = loggerService.withContext('useAppInit')
 
 export function useAppInit() {
   const dispatch = useAppDispatch()
-  const { proxyUrl, language, windowStyle, autoCheckUpdate, proxyMode, customCss, enableDataCollection } = useSettings()
+  const {
+    proxyUrl,
+    proxyBypassRules,
+    language,
+    windowStyle,
+    autoCheckUpdate,
+    proxyMode,
+    customCss,
+    enableDataCollection
+  } = useSettings()
+  const { isLeftNavbar } = useNavbarPosition()
   const { minappShow } = useRuntime()
-  const { setDefaultModel, setTopicNamingModel, setTranslateModel } = useDefaultModel()
+  const { setDefaultModel, setQuickModel, setTranslateModel } = useDefaultModel()
   const avatar = useLiveQuery(() => db.settings.get('image://avatar'))
   const { theme } = useTheme()
   const memoryConfig = useAppSelector(selectMemoryConfig)
@@ -46,6 +59,12 @@ export function useAppInit() {
       if (dataPath) {
         window.navigate('/settings/data', { replace: true })
       }
+    })
+  }, [])
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on(IpcChannel.App_SaveData, async () => {
+      await handleSaveData()
     })
   }, [])
 
@@ -69,35 +88,35 @@ export function useAppInit() {
 
   useEffect(() => {
     if (proxyMode === 'system') {
-      window.api.setProxy('system')
+      window.api.setProxy('system', undefined)
     } else if (proxyMode === 'custom') {
-      proxyUrl && window.api.setProxy(proxyUrl)
+      proxyUrl && window.api.setProxy(proxyUrl, proxyBypassRules)
     } else {
-      window.api.setProxy('')
+      // set proxy to none for direct mode
+      window.api.setProxy('', undefined)
     }
-  }, [proxyUrl, proxyMode])
+  }, [proxyUrl, proxyMode, proxyBypassRules])
 
   useEffect(() => {
     i18n.changeLanguage(language || navigator.language || defaultLanguage)
   }, [language])
 
   useEffect(() => {
-    const transparentWindow = windowStyle === 'transparent' && isMac && !minappShow
+    const isMacTransparentWindow = windowStyle === 'transparent' && isMac
 
-    if (minappShow) {
-      window.root.style.background =
-        windowStyle === 'transparent' && isMac ? 'var(--color-background)' : 'var(--navbar-background)'
+    if (minappShow && isLeftNavbar) {
+      window.root.style.background = isMacTransparentWindow ? 'var(--color-background)' : 'var(--navbar-background)'
       return
     }
 
-    window.root.style.background = transparentWindow ? 'var(--navbar-background-mac)' : 'var(--navbar-background)'
-  }, [windowStyle, minappShow, theme])
+    window.root.style.background = isMacTransparentWindow ? 'var(--navbar-background-mac)' : 'var(--navbar-background)'
+  }, [windowStyle, minappShow, theme, isLeftNavbar])
 
   useEffect(() => {
     if (isLocalAi) {
       const model = JSON.parse(import.meta.env.VITE_RENDERER_INTEGRATED_MODEL)
       setDefaultModel(model)
-      setTopicNamingModel(model)
+      setQuickModel(model)
       setTranslateModel(model)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,4 +159,8 @@ export function useAppInit() {
       logger.error('Failed to update memory config:', error)
     })
   }, [memoryConfig])
+
+  useEffect(() => {
+    checkDataLimit()
+  }, [])
 }

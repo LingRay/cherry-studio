@@ -3,84 +3,15 @@ import { useMinappPopup } from '@renderer/hooks/useMinappPopup'
 import { useMinapps } from '@renderer/hooks/useMinapps'
 import { useRuntime } from '@renderer/hooks/useRuntime'
 import { useNavbarPosition, useSettings } from '@renderer/hooks/useSettings'
+import { MinAppType } from '@renderer/types'
 import type { MenuProps } from 'antd'
 import { Dropdown, Tooltip } from 'antd'
-import { FC, useEffect, useState } from 'react'
+import { FC, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 import { DraggableList } from '../DraggableList'
 import MinAppIcon from '../Icons/MinAppIcon'
-
-/** Tabs of opened minapps in top navbar */
-export const TopNavbarOpenedMinappTabs: FC = () => {
-  const { minappShow, openedKeepAliveMinapps, currentMinappId } = useRuntime()
-  const { openMinappKeepAlive, hideMinappPopup, closeMinapp, closeAllMinapps } = useMinappPopup()
-  const { showOpenedMinappsInSidebar } = useSettings()
-  const { theme } = useTheme()
-  const { t } = useTranslation()
-  const [keepAliveMinapps, setKeepAliveMinapps] = useState(openedKeepAliveMinapps)
-
-  useEffect(() => {
-    setTimeout(() => setKeepAliveMinapps(openedKeepAliveMinapps), 300)
-  }, [openedKeepAliveMinapps])
-
-  const handleOnClick = (app) => {
-    if (minappShow && currentMinappId === app.id) {
-      hideMinappPopup()
-    } else {
-      openMinappKeepAlive(app)
-    }
-  }
-
-  // 检查是否需要显示已打开小程序组件
-  const isShowOpened = showOpenedMinappsInSidebar && keepAliveMinapps.length > 0
-
-  // 如果不需要显示，返回空容器
-  if (!isShowOpened) return null
-
-  return (
-    <TopNavContainer
-      style={{ backgroundColor: keepAliveMinapps.length > 1 ? 'var(--color-list-item)' : 'transparent' }}>
-      <TopNavMenus>
-        {keepAliveMinapps.map((app) => {
-          const menuItems: MenuProps['items'] = [
-            {
-              key: 'closeApp',
-              label: t('minapp.sidebar.close.title'),
-              onClick: () => {
-                closeMinapp(app.id)
-              }
-            },
-            {
-              key: 'closeAllApp',
-              label: t('minapp.sidebar.closeall.title'),
-              onClick: () => {
-                closeAllMinapps()
-              }
-            }
-          ]
-          const isActive = minappShow && currentMinappId === app.id
-
-          return (
-            <Tooltip key={app.id} title={app.name} mouseEnterDelay={0.8} placement="bottom">
-              <StyledLink>
-                <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']} overlayStyle={{ zIndex: 10000 }}>
-                  <TopNavIcon
-                    theme={theme}
-                    onClick={() => handleOnClick(app)}
-                    className={`${isActive ? 'opened-active' : ''}`}>
-                    <MinAppIcon size={22} app={app} style={{ border: 'none', padding: 0 }} />
-                  </TopNavIcon>
-                </Dropdown>
-              </StyledLink>
-            </Tooltip>
-          )
-        })}
-      </TopNavMenus>
-    </TopNavContainer>
-  )
-}
 
 /** Tabs of opened minapps in sidebar */
 export const SidebarOpenedMinappTabs: FC = () => {
@@ -91,7 +22,7 @@ export const SidebarOpenedMinappTabs: FC = () => {
   const { t } = useTranslation()
   const { isLeftNavbar } = useNavbarPosition()
 
-  const handleOnClick = (app) => {
+  const handleOnClick = (app: MinAppType) => {
     if (minappShow && currentMinappId === app.id) {
       hideMinappPopup()
     } else {
@@ -155,16 +86,14 @@ export const SidebarOpenedMinappTabs: FC = () => {
 
             return (
               <Tooltip key={app.id} title={app.name} mouseEnterDelay={0.8} placement="right">
-                <StyledLink>
-                  <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']} overlayStyle={{ zIndex: 10000 }}>
-                    <Icon
-                      theme={theme}
-                      onClick={() => handleOnClick(app)}
-                      className={`${isActive ? 'opened-active' : ''}`}>
-                      <MinAppIcon size={20} app={app} style={{ borderRadius: 6 }} sidebar />
-                    </Icon>
-                  </Dropdown>
-                </StyledLink>
+                <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']} overlayStyle={{ zIndex: 10000 }}>
+                  <Icon
+                    theme={theme}
+                    onClick={() => handleOnClick(app)}
+                    className={`${isActive ? 'opened-active' : ''}`}>
+                    <MinAppIcon size={20} app={app} style={{ borderRadius: 6 }} sidebar />
+                  </Icon>
+                </Dropdown>
               </Tooltip>
             )
           })}
@@ -198,16 +127,14 @@ export const SidebarPinnedApps: FC = () => {
         const isActive = minappShow && currentMinappId === app.id
         return (
           <Tooltip key={app.id} title={app.name} mouseEnterDelay={0.8} placement="right">
-            <StyledLink>
-              <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']} overlayStyle={{ zIndex: 10000 }}>
-                <Icon
-                  theme={theme}
-                  onClick={() => openMinappKeepAlive(app)}
-                  className={`${isActive ? 'active' : ''} ${openedKeepAliveMinapps.some((item) => item.id === app.id) ? 'opened-minapp' : ''}`}>
-                  <MinAppIcon size={20} app={app} style={{ borderRadius: 6 }} sidebar />
-                </Icon>
-              </Dropdown>
-            </StyledLink>
+            <Dropdown menu={{ items: menuItems }} trigger={['contextMenu']} overlayStyle={{ zIndex: 10000 }}>
+              <Icon
+                theme={theme}
+                onClick={() => openMinappKeepAlive(app)}
+                className={`${isActive ? 'active' : ''} ${openedKeepAliveMinapps.some((item) => item.id === app.id) ? 'opened-minapp' : ''}`}>
+                <MinAppIcon size={20} app={app} style={{ borderRadius: 6 }} sidebar />
+              </Icon>
+            </Dropdown>
           </Tooltip>
         )
       }}
@@ -236,16 +163,10 @@ const Icon = styled.div<{ theme: string }>`
     background-color: ${({ theme }) => (theme === 'dark' ? 'var(--color-black)' : 'var(--color-white)')};
     opacity: 0.8;
     cursor: pointer;
-    .icon {
-      color: var(--color-icon-white);
-    }
   }
   &.active {
     background-color: ${({ theme }) => (theme === 'dark' ? 'var(--color-black)' : 'var(--color-white)')};
     border: 0.5px solid var(--color-border);
-    .icon {
-      color: var(--color-primary);
-    }
   }
 
   @keyframes borderBreath {
@@ -273,14 +194,6 @@ const Icon = styled.div<{ theme: string }>`
     border-radius: inherit;
     opacity: 0.3;
     border: 0.5px solid var(--color-primary);
-  }
-`
-
-const StyledLink = styled.div`
-  text-decoration: none;
-  -webkit-app-region: none;
-  &* {
-    user-select: none;
   }
 `
 
@@ -321,47 +234,4 @@ const TabsWrapper = styled.div`
   background-color: rgba(128, 128, 128, 0.1);
   border-radius: 20px;
   overflow: hidden;
-`
-
-const TopNavContainer = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 4px 2px;
-  gap: 6px;
-  background-color: var(--color-list-item);
-  border-radius: 20px;
-  margin: 0 5px;
-`
-
-const TopNavMenus = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 2px;
-  height: 100%;
-`
-
-const TopNavIcon = styled(Icon)`
-  width: 22px;
-  height: 22px;
-
-  .icon {
-    width: 22px;
-    height: 22px;
-  }
-
-  &:hover {
-    background-color: ${({ theme }) => (theme === 'dark' ? 'var(--color-black)' : 'var(--color-white)')};
-    opacity: 0.8;
-    border-radius: 50%;
-  }
-
-  &.opened-active {
-    background-color: ${({ theme }) => (theme === 'dark' ? 'var(--color-black)' : 'var(--color-white)')};
-    border: 0.5px solid var(--color-border);
-    border-radius: 50%;
-    .icon {
-      color: var(--color-primary);
-    }
-  }
 `
