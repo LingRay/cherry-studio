@@ -125,7 +125,17 @@ afterSign: scripts/notarize.js
 artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
-    Optimized note-taking feature, now able to quickly rename by modifying the title
-    Fixed issue where CherryAI free model could not be used
-    Fixed issue where VertexAI proxy address could not be called normally
-    Fixed issue where built-in tools from service providers could not be called normally
+    What's New in v1.6.4
+
+    Features:
+    - Providers: add CherryIN provider
+    - Notes: Add right-click context menu to create notes and folders
+    - Mini App: Add search functionality in mini app page
+    - Update Dialog: Add updating dialog in renderer process
+    - Mini App: Remove some mini apps
+
+    Bug Fixes:
+    - Fix reasoning block insertion order - now inserts before content block
+    - Fix knowledge base deletion and web search RAG errors
+    - Fix Qwen model URL configuration
+
