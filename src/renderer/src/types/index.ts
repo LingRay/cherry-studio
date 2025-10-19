@@ -78,6 +78,7 @@ const ThinkModelTypes = [
   'gpt5',
   'gpt5_codex',
   'grok',
+  'grok4_fast',
   'gemini',
   'gemini_pro',
   'qwen',
@@ -369,6 +370,7 @@ export type ProviderType =
   | 'mistral'
   | 'aws-bedrock'
   | 'vertex-anthropic'
+  | 'new-api'
 
 export type ModelType = 'text' | 'vision' | 'embedding' | 'reasoning' | 'function_calling' | 'web_search' | 'rerank'
 
@@ -417,6 +419,8 @@ export type PaintingParams = {
   id: string
   urls: string[]
   files: FileMetadata[]
+  // provider that this painting belongs to (for new-api family separation)
+  providerId?: string
 }
 
 export type PaintingProvider = 'zhipu' | 'aihubmix' | 'silicon' | 'dmxapi' | 'new-api'
@@ -833,7 +837,8 @@ export const BuiltinMCPServerNames = {
   fetch: '@cherry/fetch',
   filesystem: '@cherry/filesystem',
   difyKnowledge: '@cherry/dify-knowledge',
-  python: '@cherry/python'
+  python: '@cherry/python',
+  didiMCP: '@cherry/didi-mcp'
 } as const
 
 export type BuiltinMCPServerName = (typeof BuiltinMCPServerNames)[keyof typeof BuiltinMCPServerNames]
