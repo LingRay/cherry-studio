@@ -75,6 +75,7 @@ export type AssistantSettingCustomParameters = {
 const ThinkModelTypes = [
   'default',
   'o',
+  'openai_deep_research',
   'gpt5',
   'gpt5_codex',
   'grok',
@@ -85,6 +86,7 @@ const ThinkModelTypes = [
   'qwen_thinking',
   'doubao',
   'doubao_no_auto',
+  'doubao_after_251015',
   'hunyuan',
   'zhipu',
   'perplexity',
@@ -566,7 +568,17 @@ export enum ThemeMode {
 }
 
 /** 有限的UI语言 */
-export type LanguageVarious = 'zh-CN' | 'zh-TW' | 'el-GR' | 'en-US' | 'es-ES' | 'fr-FR' | 'ja-JP' | 'pt-PT' | 'ru-RU'
+export type LanguageVarious =
+  | 'zh-CN'
+  | 'zh-TW'
+  | 'de-DE'
+  | 'el-GR'
+  | 'en-US'
+  | 'es-ES'
+  | 'fr-FR'
+  | 'ja-JP'
+  | 'pt-PT'
+  | 'ru-RU'
 
 export type CodeStyleVarious = 'auto' | string
 

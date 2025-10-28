@@ -10,7 +10,7 @@ import { getLowerBaseModelName, isUserSelectedModelType } from '@renderer/utils'
 import { isEmbeddingModel, isRerankModel } from './embedding'
 import { isGPT5SeriesModel } from './utils'
 import { isTextToImageModel } from './vision'
-import { GEMINI_FLASH_MODEL_REGEX } from './websearch'
+import { GEMINI_FLASH_MODEL_REGEX, isOpenAIDeepResearchModel } from './websearch'
 
 // Reasoning models
 export const REASONING_REGEX =
@@ -21,6 +21,7 @@ export const REASONING_REGEX =
 export const MODEL_SUPPORTED_REASONING_EFFORT: ReasoningEffortConfig = {
   default: ['low', 'medium', 'high'] as const,
   o: ['low', 'medium', 'high'] as const,
+  openai_deep_research: ['medium'] as const,
   gpt5: ['minimal', 'low', 'medium', 'high'] as const,
   gpt5_codex: ['low', 'medium', 'high'] as const,
   grok: ['low', 'high'] as const,
@@ -31,6 +32,7 @@ export const MODEL_SUPPORTED_REASONING_EFFORT: ReasoningEffortConfig = {
   qwen_thinking: ['low', 'medium', 'high'] as const,
   doubao: ['auto', 'high'] as const,
   doubao_no_auto: ['high'] as const,
+  doubao_after_251015: ['minimal', 'low', 'medium', 'high'] as const,
   hunyuan: ['auto'] as const,
   zhipu: ['auto'] as const,
   perplexity: ['low', 'medium', 'high'] as const,
@@ -41,6 +43,7 @@ export const MODEL_SUPPORTED_REASONING_EFFORT: ReasoningEffortConfig = {
 export const MODEL_SUPPORTED_OPTIONS: ThinkingOptionConfig = {
   default: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.default] as const,
   o: MODEL_SUPPORTED_REASONING_EFFORT.o,
+  openai_deep_research: MODEL_SUPPORTED_REASONING_EFFORT.openai_deep_research,
   gpt5: [...MODEL_SUPPORTED_REASONING_EFFORT.gpt5] as const,
   gpt5_codex: MODEL_SUPPORTED_REASONING_EFFORT.gpt5_codex,
   grok: MODEL_SUPPORTED_REASONING_EFFORT.grok,
@@ -51,6 +54,7 @@ export const MODEL_SUPPORTED_OPTIONS: ThinkingOptionConfig = {
   qwen_thinking: MODEL_SUPPORTED_REASONING_EFFORT.qwen_thinking,
   doubao: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.doubao] as const,
   doubao_no_auto: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.doubao_no_auto] as const,
+  doubao_after_251015: MODEL_SUPPORTED_REASONING_EFFORT.doubao_after_251015,
   hunyuan: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.hunyuan] as const,
   zhipu: ['off', ...MODEL_SUPPORTED_REASONING_EFFORT.zhipu] as const,
   perplexity: MODEL_SUPPORTED_REASONING_EFFORT.perplexity,
@@ -60,6 +64,9 @@ export const MODEL_SUPPORTED_OPTIONS: ThinkingOptionConfig = {
 export const getThinkModelType = (model: Model): ThinkingModelType => {
   let thinkingModelType: ThinkingModelType = 'default'
   const modelId = getLowerBaseModelName(model.id)
+  if (isOpenAIDeepResearchModel(model)) {
+    return 'openai_deep_research'
+  }
   if (isGPT5SeriesModel(model)) {
     if (modelId.includes('codex')) {
       thinkingModelType = 'gpt5_codex'
@@ -85,6 +92,8 @@ export const getThinkModelType = (model: Model): ThinkingModelType => {
   } else if (isSupportedThinkingTokenDoubaoModel(model)) {
     if (isDoubaoThinkingAutoModel(model)) {
       thinkingModelType = 'doubao'
+    } else if (isDoubaoSeedAfter251015(model)) {
+      thinkingModelType = 'doubao_after_251015'
     } else {
       thinkingModelType = 'doubao_no_auto'
     }
@@ -308,12 +317,19 @@ export const DOUBAO_THINKING_MODEL_REGEX =
   /doubao-(?:1[.-]5-thinking-vision-pro|1[.-]5-thinking-pro-m|seed-1[.-]6(?:-flash)?(?!-(?:thinking)(?:-|$)))(?:-[\w-]+)*/i
 
 // 支持 auto 的 Doubao 模型 doubao-seed-1.6-xxx doubao-seed-1-6-xxx  doubao-1-5-thinking-pro-m-xxx
+// Auto thinking is no longer supported after version 251015, see https://console.volcengine.com/ark/region:ark+cn-beijing/model/detail?Id=doubao-seed-1-6
 export const DOUBAO_THINKING_AUTO_MODEL_REGEX =
-  /doubao-(1-5-thinking-pro-m|seed-1[.-]6)(?!-(?:flash|thinking)(?:-|$))(?:-[\w-]+)*/i
+  /doubao-(1-5-thinking-pro-m|seed-1[.-]6)(?!-(?:flash|thinking)(?:-|$))(?:-lite)?(?!-251015)(?:-\d+)?$/i
 
 export function isDoubaoThinkingAutoModel(model: Model): boolean {
   const modelId = getLowerBaseModelName(model.id)
   return DOUBAO_THINKING_AUTO_MODEL_REGEX.test(modelId) || DOUBAO_THINKING_AUTO_MODEL_REGEX.test(model.name)
+}
+
+export function isDoubaoSeedAfter251015(model: Model): boolean {
+  const pattern = new RegExp(/doubao-seed-1-6-(?:lite-)?251015/i)
+  const result = pattern.test(model.id)
+  return result
 }
 
 export function isSupportedThinkingTokenDoubaoModel(model?: Model): boolean {
@@ -324,6 +340,12 @@ export function isSupportedThinkingTokenDoubaoModel(model?: Model): boolean {
   const modelId = getLowerBaseModelName(model.id, '/')
 
   return DOUBAO_THINKING_MODEL_REGEX.test(modelId) || DOUBAO_THINKING_MODEL_REGEX.test(model.name)
+}
+
+export function isClaude45ReasoningModel(model: Model): boolean {
+  const modelId = getLowerBaseModelName(model.id, '/')
+  const regex = /claude-(sonnet|opus|haiku)-4(-|.)5(?:-[\w-]+)?$/i
+  return regex.test(modelId)
 }
 
 export function isClaudeReasoningModel(model?: Model): boolean {

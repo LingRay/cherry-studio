@@ -19,6 +19,7 @@ import {
   GoogleGenAI,
   Model as GeminiModel,
   SendMessageParameters,
+  ThinkingConfig,
   Tool
 } from '@google/genai'
 import OpenAI, { AzureOpenAI } from 'openai'
@@ -78,6 +79,7 @@ export type ReasoningEffortOptionalParams = {
   thinking?: { type: 'disabled' | 'enabled' | 'auto'; budget_tokens?: number }
   reasoning?: { max_tokens?: number; exclude?: boolean; effort?: string; enabled?: boolean } | OpenAI.Reasoning
   reasoningEffort?: OpenAI.Chat.Completions.ChatCompletionCreateParams['reasoning_effort'] | 'none' | 'auto'
+  // WARN: This field will be overwrite to undefined by aisdk if the provider is openai-compatible. Use reasoningEffort instead.
   reasoning_effort?: OpenAI.Chat.Completions.ChatCompletionCreateParams['reasoning_effort'] | 'none' | 'auto'
   enable_thinking?: boolean
   thinking_budget?: number
@@ -89,10 +91,7 @@ export type ReasoningEffortOptionalParams = {
   }
   extra_body?: {
     google?: {
-      thinking_config: {
-        thinking_budget: number
-        include_thoughts?: boolean
-      }
+      thinking_config: ThinkingConfig
     }
   }
   // Add any other potential reasoning-related keys here if they exist
