@@ -4,13 +4,7 @@
     // to sort json
     "actions": {
       "source": {
-        "organizeImports": "on",
-        "useSortedKeys": {
-          "level": "on",
-          "options": {
-            "sortOrder": "lexicographic"
-          }
-        }
+        "organizeImports": "on"
       }
     },
     "enabled": true,
