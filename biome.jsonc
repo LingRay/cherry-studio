@@ -14,7 +14,7 @@
       }
     },
     "enabled": true,
-    "includes": ["**/*.json", "!*.json", "!**/package.json", "!coverage/**"]
+    "includes": ["**/*.json", "**/*.ts", "**/*.tsx", "!*.json", "!**/package.json", "!coverage/**"]
   },
   "css": {
     "formatter": {
@@ -83,6 +83,12 @@
     "includes": ["!**/tailwind.css", "src/renderer/**/*.{tsx,ts}"],
     // only enable sorted tailwind css rule. used as formatter instead of linter
     "rules": {
+      "correctness": {
+        "noUnusedImports": {
+          "fix": "none",
+          "level": "warn"
+        }
+      },
       "nursery": {
         // to sort tailwind css classes
         "useSortedClasses": {
