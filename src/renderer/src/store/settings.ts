@@ -46,6 +46,7 @@ export interface SettingsState {
   targetLanguage: TranslateLanguageCode
   proxyMode: 'system' | 'custom' | 'none'
   proxyUrl?: string
+  proxyState: 'disabled' | 'enabled'
   proxyBypassRules?: string
   userName: string
   userId: string
@@ -232,6 +233,7 @@ export const initialState: SettingsState = {
   targetLanguage: 'en-us',
   proxyMode: 'system',
   proxyUrl: undefined,
+  proxyState: 'disabled',
   proxyBypassRules: undefined,
   userName: '',
   userId: uuid(),
@@ -450,6 +452,9 @@ const settingsSlice = createSlice({
     },
     setProxyUrl: (state, action: PayloadAction<string | undefined>) => {
       state.proxyUrl = action.payload
+    },
+    setProxyState: (state, action: PayloadAction<'disabled' | 'enabled'>) => {
+      state.proxyState = action.payload
     },
     setProxyBypassRules: (state, action: PayloadAction<string | undefined>) => {
       state.proxyBypassRules = action.payload
@@ -869,6 +874,7 @@ export const {
   setTargetLanguage,
   setProxyMode,
   setProxyUrl,
+  setProxyState,
   setProxyBypassRules,
   setUserName,
   setShowPrompt,

@@ -10,11 +10,15 @@ import useNavBackgroundColor from '@renderer/hooks/useNavBackgroundColor'
 import { modelGenerating, useRuntime } from '@renderer/hooks/useRuntime'
 import { useSettings } from '@renderer/hooks/useSettings'
 import { getSidebarIconLabel, getThemeModeLabel } from '@renderer/i18n/label'
+import { useAppDispatch } from '@renderer/store'
+import { setProxyMode, setProxyState } from '@renderer/store/settings'
 import { ThemeMode } from '@renderer/types'
 import { isEmoji } from '@renderer/utils'
 import { Avatar, Tooltip } from 'antd'
+
 import {
   Code,
+  Earth,
   FileSearch,
   Folder,
   Languages,
@@ -39,8 +43,9 @@ import { SidebarOpenedMinappTabs, SidebarPinnedApps } from './PinnedMinapps'
 const Sidebar: FC = () => {
   const { hideMinappPopup } = useMinappPopup()
   const { minappShow } = useRuntime()
-  const { sidebarIcons } = useSettings()
+  const { sidebarIcons, proxyMode, proxyState, proxyUrl } = useSettings()
   const { pinned } = useMinapps()
+  const dispatch = useAppDispatch()
 
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -58,6 +63,18 @@ const Sidebar: FC = () => {
   const to = async (path: string) => {
     await modelGenerating()
     navigate(path)
+  }
+
+  const onToggleProxy = () => {
+    if (proxyState === 'enabled') {
+      dispatch(setProxyState('disabled'))
+      dispatch(setProxyMode('none'))
+      window.api.setProxy(undefined)
+    } else {
+      dispatch(setProxyMode('custom'))
+      dispatch(setProxyState('enabled'))
+      window.api.setProxy(proxyUrl || 'http://localhost:1080')
+    }
   }
 
   const isFullscreen = useFullscreen()
@@ -89,6 +106,14 @@ const Sidebar: FC = () => {
         )}
       </MainMenusContainer>
       <Menus>
+        <Tooltip
+          title={'proxy: ' + (proxyMode === 'custom' ? proxyUrl : proxyMode === 'system' ? 'system' : '--')}
+          mouseEnterDelay={0.8}
+          placement="right">
+          <Icon theme={theme} onClick={onToggleProxy} className={proxyState === 'enabled' ? 'active' : ''}>
+            <Earth size={20} className="icon" />
+          </Icon>
+        </Tooltip>
         <Tooltip
           title={t('settings.theme.title') + ': ' + getThemeModeLabel(settedTheme)}
           mouseEnterDelay={0.8}
@@ -122,7 +147,7 @@ const Sidebar: FC = () => {
 const MainMenus: FC = () => {
   const { hideMinappPopup } = useMinappPopup()
   const { pathname } = useLocation()
-  const { sidebarIcons, defaultPaintingProvider } = useSettings()
+  const { sidebarIcons, defaultPaintingProvider, proxyMode, proxyState, proxyUrl } = useSettings()
   const { minappShow } = useRuntime()
   const navigate = useNavigate()
   const { theme } = useTheme()

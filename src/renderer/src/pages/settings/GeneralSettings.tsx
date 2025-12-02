@@ -9,13 +9,14 @@ import i18n from '@renderer/i18n'
 import type { RootState } from '@renderer/store'
 import { useAppDispatch } from '@renderer/store'
 import {
+  setProxyBypassRules as _setProxyBypassRules,
+  setProxyUrl as _setProxyUrl,
   setEnableDataCollection,
   setEnableSpellCheck,
   setLanguage,
   setNotificationSettings,
-  setProxyBypassRules as _setProxyBypassRules,
   setProxyMode,
-  setProxyUrl as _setProxyUrl,
+  setProxyState,
   setSpellCheckLanguages
 } from '@renderer/store/settings'
 import type { LanguageVarious } from '@renderer/types'
@@ -118,6 +119,7 @@ const GeneralSettings: FC = () => {
 
   const onProxyModeChange = (mode: 'system' | 'custom' | 'none') => {
     dispatch(setProxyMode(mode))
+    dispatch(setProxyState(mode === 'none' ? 'disabled' : 'enabled'))
   }
 
   const languagesOptions: { value: LanguageVarious; label: string; flag: string }[] = [
