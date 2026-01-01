@@ -1,3 +1,19 @@
+/**
+ * @deprecated Scheduled for removal in v2.0.0
+ * --------------------------------------------------------------------------
+ * ⚠️ NOTICE: V2 DATA&UI REFACTORING (by 0xfullex)
+ * --------------------------------------------------------------------------
+ * STOP: Feature PRs affecting this file are currently BLOCKED.
+ * Only critical bug fixes are accepted during this migration phase.
+ *
+ * This file is being refactored to v2 standards.
+ * Any non-critical changes will conflict with the ongoing work.
+ *
+ * 🔗 Context & Status:
+ * - Contribution Hold: https://github.com/CherryHQ/cherry-studio/issues/10954
+ * - v2 Refactor PR   : https://github.com/CherryHQ/cherry-studio/pull/10162
+ * --------------------------------------------------------------------------
+ */
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
 import { AppLogo, UserAvatar } from '@renderer/config/env'
@@ -57,6 +73,7 @@ export interface RuntimeState {
   export: ExportState
   chat: ChatState
   websearch: WebSearchState
+  isOvmsSupported: boolean | undefined
 }
 
 export interface ExportState {
@@ -99,7 +116,8 @@ const initialState: RuntimeState = {
   },
   websearch: {
     activeSearches: {}
-  }
+  },
+  isOvmsSupported: undefined
 }
 
 const runtimeSlice = createSlice({
@@ -144,6 +162,9 @@ const runtimeSlice = createSlice({
     },
     setExportState: (state, action: PayloadAction<Partial<ExportState>>) => {
       state.export = { ...state.export, ...action.payload }
+    },
+    setIsOvmsSupported: (state, action: PayloadAction<boolean>) => {
+      state.isOvmsSupported = action.payload
     },
     // Chat related actions
     toggleMultiSelectMode: (state, action: PayloadAction<boolean>) => {
@@ -207,6 +228,7 @@ export const {
   setResourcesPath,
   setUpdateState,
   setExportState,
+  setIsOvmsSupported,
   // Chat related actions
   toggleMultiSelectMode,
   setSelectedMessageIds,
