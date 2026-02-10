@@ -73,11 +73,6 @@ asarUnpack:
   - "**/*.{metal,exp,lib}"
   - "node_modules/@img/sharp-libvips-*/**"
 
-# copy from node_modules/claude-code-plugins/plugins to resources/data/claude-code-pluginso
-extraResources:
-  - from: "./node_modules/claude-code-plugins/plugins/"
-    to: "claude-code-plugins"
-
 win:
   executableName: Cherry Studio
   artifactName: ${productName}-${version}-${arch}-setup.${ext}
@@ -116,6 +111,7 @@ dmg:
   writeUpdateInfo: false
 linux:
   artifactName: ${productName}-${version}-${arch}.${ext}
+  executableName: CherryStudio
   target:
     - target: AppImage
     - target: deb
@@ -124,6 +120,7 @@ linux:
   category: Utility
   desktop:
     entry:
+      Name: Cherry Studio
       StartupWMClass: CherryStudio
   mimeTypes:
     - x-scheme-handler/cherrystudio
@@ -143,30 +140,62 @@ artifactBuildCompleted: scripts/artifact-build-completed.js
 releaseInfo:
   releaseNotes: |
     <!--LANG:en-->
-    Cherry Studio 1.7.13 - Security & Bug Fixes
+    Cherry Studio 1.7.16 - New Features & Improvements
 
-    🔒 Security
-    - [Plugin] Fix security vulnerability in DXT plugin system on Windows
+    ✨ New Features
+    - [CherryIN] Add OAuth login support with automatic API key configuration
+    - [Agent] Task list now stays pinned above input area for better visibility
+    - [Plugins] Support installing plugins from ZIP files and folders via drag-and-drop
+    - [Integration] Add OpenClaw integration - power your personal AI assistant across WhatsApp, Telegram, Slack, and more
+    - [Chat] Show token usage in message headers (bubble mode)
+    - [OCR] Add PaddleOCR as a new image recognition option
+    - [Models] Add Kimi K2.5 model support
+    - [Models] Add free Qwen3-Next-80B model
+
+    🎨 Improvements
+    - [Agent] Improved tool execution display with status indicators
+    - [Chat] Unified click behavior for multi-level reasoning models
 
     🐛 Bug Fixes
-    - [Agent] Fix Agent not working when Node.js is not installed on system
-    - [Chat] Fix app crash when opening certain agents
-    - [Chat] Fix reasoning process not displaying correctly for some providers
-    - [Chat] Fix memory leak issue during streaming conversations
-    - [MCP] Fix timeout field not accepting string format in MCP configuration
-    - [Settings] Add careers section in About page
+    - [Notifications] Disk space warning can now be dismissed
+    - [Chat] Fix display issues with Claude extended thinking on Bedrock
+    - [Providers] Update Kimi/Moonshot logos
+    - [Chat] Fix image-only message display
+    - [Topics] Show notification when topic rename fails
+    - [MCP] Fix system prompt duplication in recursive tool calls
+    - [MCP] Fix refresh token expiration handling
+    - [Chat] Fix extra newline when copying from code blocks
+    - [Models] Fix Ollama model name handling
+    - [Models] Fix Aliyun GLM model parameters
+    - [Windows] Fix silent update permissions for system-wide installations
 
     <!--LANG:zh-CN-->
-    Cherry Studio 1.7.13 - 安全与问题修复
+    Cherry Studio 1.7.16 - 新功能与改进
 
-    🔒 安全修复
-    - [插件] 修复 Windows 系统 DXT 插件的安全漏洞
+    ✨ 新功能
+    - [CherryIN] 新增 OAuth 登录，自动配置 API 密钥
+    - [智能体] 任务列表固定在输入框上方显示，方便查看进度
+    - [插件] 支持从压缩包和文件夹拖放安装插件
+    - [集成] 新增 OpenClaw 集成，可在 WhatsApp、Telegram、Slack 等平台使用 AI 助手
+    - [对话] 消息头部显示 Token 用量（气泡模式）
+    - [OCR] 新增 PaddleOCR 图像识别选项
+    - [模型] 新增 Kimi K2.5 模型
+    - [模型] 新增免费 Qwen3-Next-80B 模型
+
+    🎨 改进
+    - [智能体] 优化工具执行显示，新增状态指示器
+    - [对话] 统一多层推理模型的点击交互
 
     🐛 问题修复
-    - [Agent] 修复系统未安装 Node.js 时 Agent 功能无法使用的问题
-    - [对话] 修复打开某些智能体时应用崩溃的问题
-    - [对话] 修复部分服务商推理过程无法正确显示的问题
-    - [对话] 修复流式对话时的内存泄漏问题
-    - [MCP] 修复 MCP 配置的 timeout 字段不支持字符串格式的问题
-    - [设置] 关于页面新增招聘入口
+    - [通知] 磁盘空间警告现可关闭
+    - [对话] 修复 Bedrock Claude 扩展思考的显示问题
+    - [服务商] 更新 Kimi/Moonshot 图标
+    - [对话] 修复纯图片消息的显示问题
+    - [话题] 话题重命名失败时显示提示
+    - [MCP] 修复递归工具调用时系统提示词重复
+    - [MCP] 修复刷新令牌过期处理
+    - [对话] 修复代码块复制时的多余换行
+    - [模型] 修复 Ollama 模型名称处理
+    - [模型] 修复阿里云 GLM 模型参数
+    - [Windows] 修复系统级安装的静默更新权限
     <!--LANG:END-->

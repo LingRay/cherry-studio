@@ -22,6 +22,7 @@ import { configManager } from './services/ConfigManager'
 import { lanTransferClientService } from './services/lanTransfer'
 import mcpService from './services/MCPService'
 import { localTransferService } from './services/LocalTransferService'
+import { openClawService } from './services/OpenClawService'
 import { nodeTraceService } from './services/NodeTraceService'
 import powerMonitorService from './services/PowerMonitorService'
 import {
@@ -76,12 +77,12 @@ if (isLinux && process.env.XDG_SESSION_TYPE === 'wayland') {
 }
 
 /**
- * Set window class and name for X11
- * This ensures the system tray and window manager identify the app correctly
+ * Set window class and name for Linux
+ * This ensures the window manager identifies the app correctly on both X11 and Wayland
  */
 if (isLinux) {
-  app.commandLine.appendSwitch('class', 'cherry-studio')
-  app.commandLine.appendSwitch('name', 'cherry-studio')
+  app.commandLine.appendSwitch('class', 'CherryStudio')
+  app.commandLine.appendSwitch('name', 'CherryStudio')
 }
 
 // DocumentPolicyIncludeJSCallStacksInCrashReports: Enable features for unresponsive renderer js call stacks
@@ -267,10 +268,11 @@ if (!app.requestSingleInstanceLock()) {
     }
 
     try {
+      await openClawService.stopGateway()
       await mcpService.cleanup()
       await apiServerService.stop()
     } catch (error) {
-      logger.warn('Error cleaning up MCP service:', error as Error)
+      logger.warn('Error cleaning up services:', error as Error)
     }
 
     // finish the logger

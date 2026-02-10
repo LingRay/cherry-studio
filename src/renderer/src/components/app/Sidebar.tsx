@@ -17,6 +17,7 @@ import { isEmoji } from '@renderer/utils'
 import { Avatar, Tooltip } from 'antd'
 
 import {
+  Bot,
   Code,
   Earth,
   FileSearch,
@@ -161,7 +162,8 @@ const MainMenus: FC = () => {
     knowledge: <FileSearch size={18} className="icon" />,
     files: <Folder size={18} className="icon" />,
     notes: <NotepadText size={18} className="icon" />,
-    code_tools: <Code size={18} className="icon" />
+    code_tools: <Code size={18} className="icon" />,
+    openclaw: <Bot size={18} className="icon" />
   }
 
   const pathMap = {
@@ -173,7 +175,8 @@ const MainMenus: FC = () => {
     knowledge: '/knowledge',
     files: '/files',
     code_tools: '/code',
-    notes: '/notes'
+    notes: '/notes',
+    openclaw: '/openclaw'
   }
 
   return sidebarIcons.visible.map((icon) => {
