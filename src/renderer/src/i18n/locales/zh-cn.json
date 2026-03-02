@@ -1100,6 +1100,7 @@
       },
       "export": {
         "image": "导出为图片",
+        "image_saved": "图片保存成功",
         "joplin": "导出到 Joplin",
         "md": {
           "label": "导出为 Markdown",
@@ -5528,6 +5529,7 @@
       "scroll_sync": "滚动同步设置",
       "title": "翻译设置"
     },
+    "stop": "停止翻译",
     "success": {
       "custom": {
         "delete": "删除成功",
