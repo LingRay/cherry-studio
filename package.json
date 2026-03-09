@@ -517,5 +517,8 @@
     "@napi-rs/system-ocr-win32-arm64-msvc": "1.0.2",
     "@napi-rs/system-ocr-win32-x64-msvc": "1.0.2",
     "@strongtz/win32-arm64-msvc": "0.4.7"
+  },
+  "volta": {
+    "node": "24.11.1"
   }
 }
