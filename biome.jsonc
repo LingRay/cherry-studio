@@ -8,7 +8,7 @@
       }
     },
     "enabled": true,
-    "includes": ["**/*.json", "**/*.ts", "**/*.tsx", "!*.json", "!**/package.json", "!coverage/**"]
+    "includes": ["**/*.json", "!**/package.json", "!coverage/**", "!config/app-upgrade-segments.json"]
   },
   "css": {
     "formatter": {
@@ -17,7 +17,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!**/.claude/**", "!**/.vscode/**", "!**/.conductor/**"],
+    "includes": ["**", "!**/.claude", "!**/.vscode", "!**/.conductor"],
     "maxSize": 2097152
   },
   "formatter": {
@@ -41,11 +41,8 @@
       "!*.mjs",
       "!*.cjs",
       "!*.md",
-      "!*.json",
       "!src/main/integration/**",
-      "!**/tailwind.css",
-      "!**/package.json",
-      "!.zed/**"
+      "!**/tailwind.css"
     ],
     "indentStyle": "space",
     "indentWidth": 2,
