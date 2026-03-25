@@ -10,14 +10,14 @@ import i18n from '@renderer/i18n'
 import type { RootState } from '@renderer/store'
 import { useAppDispatch } from '@renderer/store'
 import {
-  setProxyBypassRules as _setProxyBypassRules,
-  setProxyUrl as _setProxyUrl,
   setEnableDataCollection,
   setEnableSpellCheck,
   setLanguage,
   setNotificationSettings,
+  setProxyBypassRules as _setProxyBypassRules,
   setProxyMode,
   setProxyState,
+  setProxyUrl as _setProxyUrl,
   setSpellCheckLanguages
 } from '@renderer/store/settings'
 import type { LanguageVarious } from '@renderer/types'
@@ -107,13 +107,13 @@ const GeneralSettings: FC = () => {
   const onSelectLanguage = (value: LanguageVarious) => {
     dispatch(setLanguage(value))
     localStorage.setItem('language', value)
-    window.api.setLanguage(value)
-    i18n.changeLanguage(value)
+    void window.api.setLanguage(value)
+    void i18n.changeLanguage(value)
   }
 
   const handleSpellCheckChange = (checked: boolean) => {
     dispatch(setEnableSpellCheck(checked))
-    window.api.setEnableSpellCheck(checked)
+    void window.api.setEnableSpellCheck(checked)
   }
 
   const onSetProxyUrl = () => {
@@ -163,7 +163,7 @@ const GeneralSettings: FC = () => {
 
   const handleSpellCheckLanguagesChange = (selectedLanguages: string[]) => {
     dispatch(setSpellCheckLanguages(selectedLanguages))
-    window.api.setSpellCheckLanguages(selectedLanguages)
+    void window.api.setSpellCheckLanguages(selectedLanguages)
   }
 
   const handleHardwareAccelerationChange = (checked: boolean) => {
@@ -185,7 +185,7 @@ const GeneralSettings: FC = () => {
         setTimeoutTimer(
           'handleHardwareAccelerationChange',
           () => {
-            window.api.relaunchApp()
+            void window.api.relaunchApp()
           },
           500
         )
@@ -351,7 +351,7 @@ const GeneralSettings: FC = () => {
             value={enableDataCollection}
             onChange={(v) => {
               dispatch(setEnableDataCollection(v))
-              window.api.config.set('enableDataCollection', v)
+              void window.api.config.set('enableDataCollection', v)
             }}
           />
         </SettingRow>
